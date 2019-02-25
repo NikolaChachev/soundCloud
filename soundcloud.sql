@@ -97,7 +97,22 @@ ALTER TABLE songs ADD (file_path VARCHAR (200) );
 ALTER TABLE users ADD (profile_picture VARCHAR (200) );
 ALTER TABLE songs ADD (picture VARCHAR(200));
 ALTER TABLE songs ADD(lenght INT);
-
+ALTER TABLE users ADD(email VARCHAR(250));
+ALTER TABLE playlists ADD(wallpaper VARCHAR(250));
+CREATE TABLE users_reposts(
+user_id INT,
+song_id INT,
+CONSTRAINT FOREIGN KEY(user_id) REFERENCES users(user_id),
+CONSTRAINT FOREIGN KEY(song_id) REFERENCES songs(song_id),
+CONSTRAINT PRIMARY KEY(user_id,song_id)
+);
+CREATE TABLE users_liked_playlists(
+user_id INT,
+playlist_id INT,
+CONSTRAINT FOREIGN KEY (user_id) REFERENCES users(user_id),
+CONSTRAINT FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id),
+CONSTRAINT PRIMARY KEY (user_id,playlist_id)
+);
 
 
 
