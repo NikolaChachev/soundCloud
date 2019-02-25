@@ -1,0 +1,47 @@
+login
+register
+logout
+search (everything,album,people.tracks,playlists)
+upload
+profile
+{
+tracks
+albums
+playlists
+reposts
+}
+likes
+fllowers
+flowing
+amount of tracks
+history
+edit profile
+follow
+unfllow
+=============================================================
+
+songs
+play
+like
+comment
+dislike
+repost
+share
+addToPlaylist
+open station
+=======================================================
+comments
+like
+dislike
+reply
+========================================================
+
+playlist
+removeSong
+edit
+delete playlist
+============================
+
+
+
+
