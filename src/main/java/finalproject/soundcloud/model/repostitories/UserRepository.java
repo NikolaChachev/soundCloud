@@ -1,4 +1,8 @@
 package finalproject.soundcloud.model.repostitories;
 
-public class UserRepository {
+import finalproject.soundcloud.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User,Long> {
+
 }
