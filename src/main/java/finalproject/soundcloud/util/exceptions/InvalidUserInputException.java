@@ -1,11 +1,9 @@
-package finalproject.soundcloud.model.exceptions;
+package finalproject.soundcloud.util.exceptions;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class InvalidUserInputException extends Exception {
+public class InvalidUserInputException extends SoundCloudException {
     @Override
     public String getMessage() {
         return super.getMessage();

@@ -1,4 +1,4 @@
-package finalproject.soundcloud.model;
+package finalproject.soundcloud.model.pojos;
 
 
 import lombok.Getter;

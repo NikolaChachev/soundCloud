@@ -1,41 +1,83 @@
 package finalproject.soundcloud.controller;
 
-import finalproject.soundcloud.model.User;
-import finalproject.soundcloud.model.exceptions.InvalidUserInputException;
+import finalproject.soundcloud.model.dtos.UserLogInDto;
+import finalproject.soundcloud.model.dtos.UserLogOut;
+import finalproject.soundcloud.model.dtos.UserRegisterDto;
+import finalproject.soundcloud.model.pojos.User;
+import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
+import finalproject.soundcloud.util.exceptions.SoundCloudException;
+import finalproject.soundcloud.util.exceptions.UserNotFoundException;
 import finalproject.soundcloud.model.repostitories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RestController
-public class UserController {
+public class UserController extends SessionManagerController{
 
     @Autowired
     UserRepository userRepository;
 
     @PostMapping(value = "/createAccount")
-    public void regUser(@RequestBody User user) throws InvalidUserInputException {
-        try {
-            System.out.println(user);
-            isValidEmailAddress(user.getEmail());
-            isValidPassword(user.getPassword());
+    public String regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws SoundCloudException {
+            isValidUserRegData(registerDto);
+            isUserExists(registerDto.getUsername(),registerDto.getEmail());
+            User user = new User();
+            user.setUsername(registerDto.getUsername());
+            user.setPassword(registerDto.getFirstPassword());
+            user.setEmail(registerDto.getEmail());
+            user.setPro(registerDto.isPro());
+            user.setProfilePicture(registerDto.getPicturePath());
             userRepository.save(user);
-        }catch (InvalidUserInputException e){
-            throw new InvalidUserInputException(e.getMessage());
+            logUser(session,user);
+            return "Your registration was successfull";
+
+    }
+    @PostMapping(value = "/signin")
+    public String signIn(@RequestBody UserLogInDto logDto,HttpSession session) throws SoundCloudException {
+        String username = logDto.getUsername();
+        String password = logDto.getPassword().trim();
+        isValidParameters(username,password);
+        User user = userRepository.findFirstByUsernameAndPassword(username,password);
+        if(user==null){
+            throw new UserNotFoundException();
         }
+        logUser(session,user);
+        return "Welcome , " + user.getUsername();
+    }
+    @PostMapping(value = "/logout")
+    public String logOut(@RequestBody UserLogOut logOut, HttpSession session) throws SoundCloudException{
+        User user = userRepository.findByUsername(logOut.getUsername());
+        System.out.println(user);
+        logOutUser(session);
+        return "You logged out successfully " + user.getUsername() + " .See you soon!";
     }
 
-
-    public boolean isValidEmailAddress(String email) throws InvalidUserInputException {
-        String emailPattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
+    //validate logIn parameters
+    private boolean isValidParameters(String username , String password) throws InvalidUserInputException {
+        if(!(username.isEmpty() || username.equals("") || username.contains(" ")
+                || password.isEmpty() || password.equals("") || password.contains(" "))){
+            return true;
+        }
+        throw new InvalidUserInputException("Username/Password must not be empty");
+    }
+    //validation methods for user registration
+    private boolean isValidUserRegData(UserRegisterDto registerDto) throws InvalidUserInputException{
+        String firstPassword= registerDto.getFirstPassword();
+        String secondPassword= registerDto.getSecondPassword();
+        String email = registerDto.getEmail();
+        if(firstPassword.equals(secondPassword)){
+            if(isValidPassword(firstPassword) && isValidEmailAddress(email)){
+                return true;
+            }
+        }
+        throw new InvalidUserInputException("Passwords must be matching");
+    }
+    private boolean isValidEmailAddress(String email) throws InvalidUserInputException {
+        String emailPattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]" +
+                "{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
         Pattern pattern = Pattern.compile(emailPattern);
         Matcher matcher = pattern.matcher(email);
         if(matcher.matches()){
@@ -43,7 +85,7 @@ public class UserController {
         }
         throw new InvalidUserInputException("Invalid email input.");
     }
-    public boolean isValidPassword(String password) throws InvalidUserInputException {
+    private boolean isValidPassword(String password) throws InvalidUserInputException {
         String passPatern = "((?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,30})";
         Pattern pattern = Pattern.compile(passPatern);
         Matcher matcher = pattern.matcher(password);
@@ -52,7 +94,13 @@ public class UserController {
         }
         else {
             throw new InvalidUserInputException("Invalid password input.Password must occur at least once:" +
-                    "lower case letter,upper case letter and digit.The password length must be more then 8 symbols");
+                    "lower case letter,upper case letter and digit.The password length must be more than 8 symbols");
+        }
+    }
+    private void isUserExists(String username,String email) throws InvalidUserInputException{
+        User user = userRepository.findByUsernameOrEmail(username,email);
+        if(user!=null) {
+            throw new InvalidUserInputException("User already exists");
         }
     }
 }
