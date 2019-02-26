@@ -1,7 +1,9 @@
 package finalproject.soundcloud.controller;
 
+import finalproject.soundcloud.model.daos.UserDao;
+import finalproject.soundcloud.model.dtos.UserEditDto;
 import finalproject.soundcloud.model.dtos.UserLogInDto;
-import finalproject.soundcloud.model.dtos.UserLogOut;
+import finalproject.soundcloud.model.dtos.UserLogOutDto;
 import finalproject.soundcloud.model.dtos.UserRegisterDto;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
@@ -19,6 +21,8 @@ public class UserController extends SessionManagerController{
 
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    UserDao userDao;
 
     @PostMapping(value = "/createAccount")
     public String regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws SoundCloudException {
@@ -48,11 +52,22 @@ public class UserController extends SessionManagerController{
         return "Welcome , " + user.getUsername();
     }
     @PostMapping(value = "/logout")
-    public String logOut(@RequestBody UserLogOut logOut, HttpSession session) throws SoundCloudException{
+    public String logOut(@RequestBody UserLogOutDto logOut, HttpSession session) throws SoundCloudException{
         User user = userRepository.findByUsername(logOut.getUsername());
         System.out.println(user);
         logOutUser(session);
         return "You logged out successfully " + user.getUsername() + " .See you soon!";
+    }
+
+
+    @PostMapping(value = "/edit")
+    public String editProfile(@RequestBody UserEditDto editDto,HttpSession session) throws SoundCloudException{
+        isUserLogged(session);
+        User user = (User)session.getAttribute(LOGGED);
+        System.out.println(user);
+        long userId = user.getId();
+        userDao.updateUser(editDto,user,userId);
+        return "Successfull update";
     }
 
     //validate logIn parameters
@@ -75,7 +90,7 @@ public class UserController extends SessionManagerController{
         }
         throw new InvalidUserInputException("Passwords must be matching");
     }
-    private boolean isValidEmailAddress(String email) throws InvalidUserInputException {
+    public static boolean isValidEmailAddress(String email) throws InvalidUserInputException {
         String emailPattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]" +
                 "{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
         Pattern pattern = Pattern.compile(emailPattern);
@@ -85,7 +100,7 @@ public class UserController extends SessionManagerController{
         }
         throw new InvalidUserInputException("Invalid email input.");
     }
-    private boolean isValidPassword(String password) throws InvalidUserInputException {
+    public static boolean isValidPassword(String password) throws InvalidUserInputException {
         String passPatern = "((?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,30})";
         Pattern pattern = Pattern.compile(passPatern);
         Matcher matcher = pattern.matcher(password);

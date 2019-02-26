@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserLogOut {
+public class UserLogOutDto {
     private String username;
 }
