@@ -1,7 +1,6 @@
 package finalproject.soundcloud.model.daos;
 
 
-import finalproject.soundcloud.controller.UserController;
 import finalproject.soundcloud.model.dtos.UserEditDto;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
@@ -15,26 +14,29 @@ public class UserDao {
     JdbcTemplate jdbcTemplate;
 
     public void updateUser(UserEditDto editDto, User user, long userId) throws SoundCloudException {
-        String sql = "UPDATE users SET username=?, password=?,profile_picture=?," +
-                "email=?,first_name=?,second_name=?,city_name=?,country=? where user_id = ?; ";
-        String username = validateString(editDto.getUsername()) || editDto.getUsername()== "" ? user.getUsername():editDto.getUsername();
-        String password = UserController.isValidPassword(editDto.getPassword())
-                && editDto.getPassword() != null ? editDto.getPassword():user.getPassword();
-        String profilePicture = validateString(editDto.getPicturePath()) ? user.getProfilePicture():editDto.getPicturePath();
-        String email = validateString(editDto.getEmail()) && UserController.isValidEmailAddress(editDto.getEmail())?
-                user.getEmail():editDto.getEmail();
-        String firstName = validateString(editDto.getFirstName()) ? user.getFirstName():editDto.getFirstName();
-        String secondName = validateString(editDto.getSecondName())? user.getSecondName():editDto.getSecondName();
-        String city = validateString(editDto.getCity())? user.getCity():editDto.getCity();
-        String country = validateString(editDto.getCountry()) ? user.getCountry():editDto.getCountry();
-        jdbcTemplate.update(sql,username,password,profilePicture,email,firstName,secondName,city,country,userId);
+        String sql = "UPDATE users SET " +
+                "username= COALESCE (? , ?) ," +
+                "password= COALESCE (? , ?)," +
+                "profile_picture = COALESCE (? , ?)," +
+                "email = COALESCE (? , ?)," +
+                "first_name = COALESCE (? , ? , ' ')," +
+                "second_name= COALESCE (? , ? , ' ')," +
+                "city_name= COALESCE (? , ? , ' ')," +
+                "country= COALESCE (? , ? , ' ')" +
+                " where user_id = ?; ";
+
+        jdbcTemplate.update(sql,
+                UserValidationDao.validateUsername(editDto.getUsername()), user.getUsername(),
+                UserValidationDao.validatePassword(editDto.getPassword()) ? editDto.getPassword() : null, user.getPassword(),
+                UserValidationDao.validatePicturePath(editDto.getPicturePath()), user.getProfilePicture(),
+                UserValidationDao.validateEmailAddress(editDto.getEmail()) ? editDto.getEmail() : null, user.getEmail(),
+                UserValidationDao.validateOtherData(editDto.getFirstName()), user.getFirstName(),
+                UserValidationDao.validateOtherData(editDto.getSecondName()), user.getSecondName(),
+                UserValidationDao.validateOtherData(editDto.getCity()), user.getCity(),
+                UserValidationDao.validateOtherData(editDto.getCountry()), user.getCountry(),
+                userId);
+
     }
 
-    //todo better validation
-    private boolean validateString(String str){
-        if(str == null || str == "" || str.contains(" ")){
-            return true;
-        }
-        return false;
-    }
+
 }
