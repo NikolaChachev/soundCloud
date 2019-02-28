@@ -12,7 +12,7 @@ public class UserRegisterDto {
     private String username;
     private String firstPassword;
     private String secondPassword;
+    private String isPro;
     private String email;
-    private boolean isPro;
     private String picturePath;
 }

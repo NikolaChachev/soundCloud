@@ -4,6 +4,7 @@ package finalproject.soundcloud.model.pojos;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -29,6 +30,7 @@ public class User {
     @Column
     private String email;
     @Column(name = "user_type")
+    @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean isPro;
     @Column(name = "first_name")
     private String firstName;

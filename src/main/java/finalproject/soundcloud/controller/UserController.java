@@ -2,6 +2,7 @@ package finalproject.soundcloud.controller;
 
 import finalproject.soundcloud.model.daos.UserDao;
 import finalproject.soundcloud.model.daos.UserValidationDao;
+import finalproject.soundcloud.model.dtos.ResponseDto;
 import finalproject.soundcloud.model.dtos.UserEditDto;
 import finalproject.soundcloud.model.dtos.UserLogInDto;
 import finalproject.soundcloud.model.dtos.UserRegisterDto;
@@ -13,6 +14,7 @@ import finalproject.soundcloud.model.repostitories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 
 @RestController
 public class UserController extends SessionManagerController{
@@ -21,24 +23,27 @@ public class UserController extends SessionManagerController{
     UserRepository userRepository;
     @Autowired
     UserDao userDao;
+    @Autowired
+    ResponseDto responseDto;
 
     @PostMapping(value = "/createAccount")
-    public String regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws SoundCloudException {
+    public ResponseDto regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws SoundCloudException {
         UserValidationDao.validateUserRegData(registerDto);
             isUserExists(registerDto.getUsername(),registerDto.getEmail());
             User user = new User();
             user.setUsername(registerDto.getUsername());
             user.setPassword(registerDto.getFirstPassword());
             user.setEmail(registerDto.getEmail());
-            user.setPro(registerDto.isPro());
+            user.setPro(Boolean.parseBoolean(registerDto.getIsPro()));
             user.setProfilePicture(registerDto.getPicturePath());
             userRepository.save(user);
             logUser(session,user);
-            return "Your registration was successfull";
+            responseDto.setResponse("Your registration was successfull");
+            return responseDto;
 
     }
     @PostMapping(value = "/signin")
-    public String signIn(@RequestBody UserLogInDto logDto,HttpSession session) throws SoundCloudException {
+    public ResponseDto signIn(@RequestBody UserLogInDto logDto,HttpSession session) throws SoundCloudException {
         String username = logDto.getUsername();
         String password = logDto.getPassword().trim();
         UserValidationDao.validateLogInParameters(username,password);
@@ -47,29 +52,38 @@ public class UserController extends SessionManagerController{
             throw new UserNotFoundException();
         }
         logUser(session,user);
-        return "Welcome , " + user.getUsername();
+        responseDto.setResponse( "Welcome , " + user.getUsername());
+        return responseDto;
     }
     @PostMapping(value = "/logout")
-    public String logOut(HttpSession session) throws SoundCloudException{
+    public ResponseDto logOut(HttpSession session) throws SoundCloudException{
         User user = (User)session.getAttribute(LOGGED);
         logOutUser(session);
-        return "You logged out successfully " + user.getUsername() + " .See you soon!";
+        responseDto.setResponse("You logged out successfully " + user.getUsername() + " .See you soon!");
+        return responseDto;
     }
     @PostMapping(value = "/edit")
-    public String editProfile(@RequestBody UserEditDto editDto,HttpSession session) throws SoundCloudException{
+    public ResponseDto editProfile(@RequestBody UserEditDto editDto,HttpSession session) throws SoundCloudException{
         isUserLogged(session);
         User user = (User)session.getAttribute(LOGGED);
-        System.out.println(user);
         long userId = user.getId();
         userDao.updateUser(editDto,user,userId);
-        return "Successfull update!";
+        responseDto.setResponse("Successfull update!");
+        return responseDto;
     }
-    @PostMapping(value = "/deleteProfile")
-    public String deleteProfile(HttpSession session) throws SoundCloudException{
+    @DeleteMapping(value = "/deleteProfile")
+    public ResponseDto deleteProfile(HttpSession session) throws SoundCloudException{
         isUserLogged(session);
         User user = (User)session.getAttribute(LOGGED);
         userRepository.delete(user);
-        return "Your profile has been deleted.We hope to seee you soon!";
+        responseDto.setResponse("Your profile has been deleted.We hope to seee you soon!");
+        return responseDto;
+    }
+
+    @GetMapping(value = "/getAllUser")
+    public ArrayList<User> getAll(HttpSession session) throws SoundCloudException{
+
+        return userRepository.findAllUserByUsername("do");
     }
 
     public void isUserExists(String username,String email) throws InvalidUserInputException{
