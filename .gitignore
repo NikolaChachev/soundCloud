@@ -18,6 +18,10 @@ HELP.md
 *.ipr
 *application.properties
 *pom.xml
+<<<<<<< HEAD
+=======
+
+>>>>>>> a7c11c76cf405f1a9514e77361e8ac618465de43
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

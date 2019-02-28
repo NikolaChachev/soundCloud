@@ -80,7 +80,7 @@ public class UserValidationDao {
             return null;
         }
         if(!str.matches("[a-zA-Z]+") || str.contains(" ")){
-            throw new InvalidUserInputException("The field with parameter :" + str + " isn't valid." +
+            throw new InvalidUserInputException("The field with parameter : '" + str + "' isn't valid." +
                     " Please enter a valid data!");
         }
         return str;
