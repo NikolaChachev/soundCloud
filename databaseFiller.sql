@@ -28,50 +28,50 @@ VALUES('chihlala','stelchencetu99',2,'asdprofilePicture/WomanPic.png',"stelaPast
 INSERT INTO users(username,password,user_type,profile_picture,email,city_name,country,first_name,second_name) 
 VALUES('quill18','theQuill18',2,'asdprofilePicture/ManProfile.png',"realQuill@gmail.com",'toronto','canada','chriss','lazowski');
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(12,'uprising',true,'songs/12_uprising.mp4',225);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(12,'supermasive black hole',true,'songs/12_supermasive_black_hole.mp4',160);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(13,'cry for the moon',true,'songs/13_cry_for_the_moon.mp4',312);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(13,'Feint',true,'songs/13_feint.mp4',260);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(13,'sensorium',true,'songs/13sensorium.mp4',289);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(14,'paparazzi',true,'songs/14_paparazzi.mp4',159);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(14,'telephone',true,'songs/14_telephone.mp4',210);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(14,'just dance',true,'songs/14_just_dance.mp4',185);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(13,'never neough',true,'songs/13_never_enough.mp4',287);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(15,'hail levski',true,'songs/15_hail_levski.mp4',100);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(16,'oh my',true,'songs/16_oh_my.mp4',143);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(17,'rebel',true,'songs/16_rebel.mp4',169);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(18,'be good',true,'songs/18_be_good.mp4',143);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(10,'pesent za borba',true,'songs/10_pesen_za_borba.mp4',113);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(13,'uprising',true,'songs/13_uprising.mp4',294);
 
-INSERT INTO songs(user_id,song_name,is_public,file_path,lenght) 
+INSERT INTO songs(user_id,song_name,is_public,file_path,length) 
 VALUES(11,'sveti slance',true,'songs/11_sveti_slance.mp4',133);
