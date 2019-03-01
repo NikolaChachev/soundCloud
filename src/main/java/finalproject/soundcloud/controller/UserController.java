@@ -29,6 +29,8 @@ public class UserController extends SessionManagerController{
     ResponseDto responseDto;
 
     public static final String IMAGE_DIR = "D:\\ITtalents\\FinalProject\\pictures\\";
+    public static final String SONGS_DIR = "D:\\ITtalents\\FinalProject\\songs\\";
+
     @PostMapping(value = "/createAccount")
     public ResponseDto regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws SoundCloudException {
         UserValidationDao.validateUserRegData(registerDto);
@@ -64,7 +66,7 @@ public class UserController extends SessionManagerController{
         responseDto.setResponse("You logged out successfully " + user.getUsername() + " .See you soon!");
         return responseDto;
     }
-    @PostMapping(value = "/edit/{id}")
+    @PutMapping(value = "users/edit/{id}")
     public ResponseDto editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
                                    HttpSession session) throws SoundCloudException{
         isUserLogged(session);
@@ -77,7 +79,7 @@ public class UserController extends SessionManagerController{
         }
         throw new InvalidUserInputException("You are UNAUTHORIZED to edit this profile.");
     }
-    @DeleteMapping(value = "/deleteProfile/{id}")
+    @DeleteMapping(value = "users/deleteProfile/{id}")
     public ResponseDto deleteProfile(@PathVariable("id") long userParamId, HttpSession session) throws SoundCloudException{
         isUserLogged(session);
         User user = (User)session.getAttribute(LOGGED);
@@ -91,11 +93,6 @@ public class UserController extends SessionManagerController{
         }
         throw new InvalidUserInputException("You are UNAUTHORIZED to delete this profile.");
     }
-    @GetMapping(value = "/getAllUsers")
-    public List<User> getAll(@RequestParam String username) throws SoundCloudException{
-        return userDao.showAllUser(username);
-    }
-
     @PostMapping("users/{id}/uploadImages")
     public ResponseDto uploadImage(@RequestBody ImageDto dto,@PathVariable ("id") long id, HttpSession session) throws Exception {
         User user = (User) session.getAttribute(LOGGED);
@@ -116,7 +113,6 @@ public class UserController extends SessionManagerController{
             throw new InvalidUserInputException("You are UNAUTHORIZED to upload a picure at this profile.");
         }
     }
-
     @GetMapping(value="users/{id}/profileImage", produces = "image/png")
     public byte[] downloadImage(@PathVariable("id") long id, HttpSession session) throws Exception {
         User user = (User) session.getAttribute(LOGGED);
@@ -131,9 +127,47 @@ public class UserController extends SessionManagerController{
         }
         throw new InvalidUserInputException("You are UNAUTHORIZED to see the picure at this profile.");
     }
+    @DeleteMapping("users/{id}/deleteProfileImage")
+    public ResponseDto deleteImage(@PathVariable ("id") long id, HttpSession session) throws Exception {
+        User user = (User) session.getAttribute(LOGGED);
+        isUserLogged(session);
+        if(user.getId() == id) {
+            File newImage = new File(IMAGE_DIR + user.getProfilePicture());
+            UserValidationDao.hasUserProfilePicture(newImage);
+            newImage.delete();
+            user.setProfilePicture(null);
+            responseDto.setResponse("Image deleted successfully");
+            return responseDto;
+        }
+        else {
+            throw new InvalidUserInputException("You are UNAUTHORIZED to delete a picure at this profile.");
+        }
+    }
+
+    @PostMapping("users/{id}/uploadSongs")
+    public ResponseDto uploadSong(@RequestBody SongDto dto,@PathVariable ("id") long id, HttpSession session) throws Exception {
+        User user = (User) session.getAttribute(LOGGED);
+        isUserLogged(session);
+        if(user.getId() == id) {
+            String base64 = dto.getSongFilePath();
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            String name = user.getId() + System.currentTimeMillis() + ".mp3";
+            File newImage = new File(SONGS_DIR + name);
+            FileOutputStream fos = new FileOutputStream(newImage);
+            fos.write(bytes);
+            songDao.uploadSong(fos,user);
+            responseDto.setResponse("Songs uploaded successfully");
+            return responseDto;
+        }
+        else {
+            throw new InvalidUserInputException("You are UNAUTHORIZED to upload a songs at this profile.");
+        }
+    }
 
 
-    public void isUserExists(String username,String email) throws InvalidUserInputException{
+
+
+    private void isUserExists(String username,String email) throws InvalidUserInputException{
         User user = userRepository.findByUsernameOrEmail(username,email);
         if(user!=null) {
             throw new InvalidUserInputException("User already exists");
