@@ -8,6 +8,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 @NoArgsConstructor
@@ -16,6 +17,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "playlists")
 public class Playlist {
+    @Id
     @Column(name = "playlist_id")
     private long id;
     @Column(name = "user_id")

@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.util.Date;
 
@@ -15,12 +16,13 @@ import java.util.Date;
 @Entity
 @Table(name = "comments")
 public class Comment {
+    @Id
     @Column(name = "comment_id")
     private long id;
     @Column(name = "song_id")
     private long songId;
     @Column(name = "user_id")
-    private User userId;
+    private long userId;
     @Column
     private String text;
     @Column

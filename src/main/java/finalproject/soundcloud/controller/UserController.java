@@ -65,6 +65,7 @@ public class UserController extends SessionManagerController{
     @PostMapping(value = "/edit")
     public ResponseDto editProfile(@RequestBody UserEditDto editDto,HttpSession session) throws SoundCloudException{
         isUserLogged(session);
+
         User user = (User)session.getAttribute(LOGGED);
         long userId = user.getId();
         userDao.updateUser(editDto,user,userId);
