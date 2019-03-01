@@ -9,7 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserEditDto extends UserLogInDto {
     private String email;
-    private String picturePath;
     private String firstName;
     private String secondName;
     private String city;

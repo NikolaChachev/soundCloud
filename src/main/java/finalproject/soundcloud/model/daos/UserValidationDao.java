@@ -3,6 +3,7 @@ package finalproject.soundcloud.model.daos;
 import finalproject.soundcloud.model.dtos.UserRegisterDto;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
 
+import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,10 +25,8 @@ public class UserValidationDao {
         String firstPassword= registerDto.getFirstPassword();
         String secondPassword= registerDto.getSecondPassword();
         String email = registerDto.getEmail();
-        String picPath = registerDto.getPicturePath();
         if(firstPassword.equals(secondPassword)){
-            if(validatePassword(firstPassword) && validateEmailAddress(email) &&
-            validateUsername(username)!=null && validatePicturePath(picPath)!= null){
+            if(validatePassword(firstPassword) && validateEmailAddress(email) && validateUsername(username)!=null ){
                 return true;
             }
         }
@@ -64,15 +63,6 @@ public class UserValidationDao {
         }
         return username;
     }
-    public static String validatePicturePath(String picture) throws InvalidUserInputException{
-        if(picture.equals("")){
-            return null;
-        }
-        if(picture == "" || picture.contains(" ")){
-            throw new InvalidUserInputException("Picture path isn,t valid");
-        }
-        return picture;
-    }
 
     //validate firstName,lastName,city,country
     public static String validateOtherData(String str) throws InvalidUserInputException{
@@ -84,6 +74,14 @@ public class UserValidationDao {
                     " Please enter a valid data!");
         }
         return str;
+    }
+
+    //has the user got a profile picture
+    public static boolean hasUserProfilePicture(File file) throws InvalidUserInputException{
+        if(file.exists()){
+            return true;
+        }
+        throw new InvalidUserInputException("You haven't got a profile picture!");
     }
 
 
