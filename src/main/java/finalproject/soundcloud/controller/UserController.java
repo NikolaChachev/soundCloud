@@ -70,6 +70,7 @@ public class UserController extends SessionManagerController{
     public ResponseDto editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
                                    HttpSession session) throws SoundCloudException{
         isUserLogged(session);
+
         User user = (User)session.getAttribute(LOGGED);
         long userId = user.getId();
         if(userId == userParamId) {
