@@ -156,7 +156,8 @@ public class UserController extends SessionManagerController{
             File newImage = new File(SONGS_DIR + name);
             FileOutputStream fos = new FileOutputStream(newImage);
             fos.write(bytes);
-            songDao.uploadSong(fos,user);
+            //todo
+            //songDao.uploadSong(fos,user);
             responseDto.setResponse("Songs uploaded successfully");
             return responseDto;
         }
