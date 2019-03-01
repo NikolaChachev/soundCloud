@@ -14,5 +14,4 @@ public class UserRegisterDto {
     private String secondPassword;
     private String isPro;
     private String email;
-    private String picturePath;
 }

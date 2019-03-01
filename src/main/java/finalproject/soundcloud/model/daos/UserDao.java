@@ -1,12 +1,13 @@
 package finalproject.soundcloud.model.daos;
 
-
 import finalproject.soundcloud.model.dtos.UserEditDto;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import java.util.List;
 
 @Component
 public class UserDao {
@@ -17,7 +18,6 @@ public class UserDao {
         String sql = "UPDATE users SET " +
                 "username= COALESCE (? , ?) ," +
                 "password= COALESCE (? , ?)," +
-                "profile_picture = COALESCE (? , ?)," +
                 "email = COALESCE (? , ?)," +
                 "first_name = COALESCE (? , ? , ' ')," +
                 "second_name= COALESCE (? , ? , ' ')," +
@@ -28,7 +28,6 @@ public class UserDao {
         jdbcTemplate.update(sql,
                 UserValidationDao.validateUsername(editDto.getUsername()), user.getUsername(),
                 UserValidationDao.validatePassword(editDto.getPassword()) ? editDto.getPassword() : null, user.getPassword(),
-                UserValidationDao.validatePicturePath(editDto.getPicturePath()), user.getProfilePicture(),
                 UserValidationDao.validateEmailAddress(editDto.getEmail()) ? editDto.getEmail() : null, user.getEmail(),
                 UserValidationDao.validateOtherData(editDto.getFirstName()), user.getFirstName(),
                 UserValidationDao.validateOtherData(editDto.getSecondName()), user.getSecondName(),
@@ -38,5 +37,12 @@ public class UserDao {
 
     }
 
+    public List<User> showAllUser(String username){
+        String sql = "SELECT * FROM users where userName like ?";
+
+        List<User> users = jdbcTemplate.query(sql, new Object[]{"%"+username+"%"},
+                new BeanPropertyRowMapper<>(User.class));
+        return users;
+    }
 
 }
