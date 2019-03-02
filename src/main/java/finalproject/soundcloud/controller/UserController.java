@@ -1,5 +1,6 @@
 package finalproject.soundcloud.controller;
 
+import finalproject.soundcloud.model.daos.SongDao;
 import finalproject.soundcloud.model.daos.UserDao;
 import finalproject.soundcloud.model.daos.UserValidationDao;
 import finalproject.soundcloud.model.dtos.*;
@@ -26,10 +27,13 @@ public class UserController extends SessionManagerController{
     @Autowired
     UserDao userDao;
     @Autowired
+    SongDao songDao;
+    @Autowired
     ResponseDto responseDto;
 
     public static final String IMAGE_DIR = "D:\\ITtalents\\FinalProject\\pictures\\";
     public static final String SONGS_DIR = "D:\\ITtalents\\FinalProject\\songs\\";
+
 
     @PostMapping(value = "/createAccount")
     public ResponseDto regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws SoundCloudException {
@@ -70,7 +74,6 @@ public class UserController extends SessionManagerController{
     public ResponseDto editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
                                    HttpSession session) throws SoundCloudException{
         isUserLogged(session);
-
         User user = (User)session.getAttribute(LOGGED);
         long userId = user.getId();
         if(userId == userParamId) {
@@ -119,12 +122,10 @@ public class UserController extends SessionManagerController{
         User user = (User) session.getAttribute(LOGGED);
         isUserLogged(session);
         if(user.getId()==id) {
-            if (user.getId() == id) {
-                File newImage = new File(IMAGE_DIR + user.getProfilePicture());
-                UserValidationDao.hasUserProfilePicture(newImage);
-                FileInputStream fis = new FileInputStream(newImage);
-                return IOUtils.toByteArray(fis);
-            }
+            File newImage = new File(IMAGE_DIR + user.getProfilePicture());
+            UserValidationDao.hasUserProfilePicture(newImage);
+            FileInputStream fis = new FileInputStream(newImage);
+            return IOUtils.toByteArray(fis);
         }
         throw new InvalidUserInputException("You are UNAUTHORIZED to see the picure at this profile.");
     }
@@ -145,8 +146,10 @@ public class UserController extends SessionManagerController{
         }
     }
 
+
     @PostMapping("users/{id}/uploadSongs")
-    public ResponseDto uploadSong(@RequestBody SongDto dto,@PathVariable ("id") long id, HttpSession session) throws Exception {
+
+    public ResponseDto uploadImage(@RequestBody SongDto dto, @PathVariable("id") long id, HttpSession session) throws Exception {
         User user = (User) session.getAttribute(LOGGED);
         isUserLogged(session);
         if(user.getId() == id) {
@@ -164,6 +167,20 @@ public class UserController extends SessionManagerController{
         else {
             throw new InvalidUserInputException("You are UNAUTHORIZED to upload a songs at this profile.");
         }
+    }
+    @DeleteMapping(value="users/{id}/songs/{song_name}")
+    public ResponseDto deleteSong(@PathVariable("id") long id,@PathVariable String song_name, HttpSession session) throws Exception {
+        User user = (User) session.getAttribute(LOGGED);
+        isUserLogged(session);
+        if(user.getId() == id) {
+            File song = new File(SONGS_DIR + song_name);
+            UserValidationDao.hasUserSongs(song);
+            // todo
+            // userDao.geleteSong(song);
+            responseDto.setResponse("Song deleted successfully");
+            return responseDto;
+        }
+        throw new InvalidUserInputException("You are UNAUTHORIZED to delete a song at this profile.");
     }
 
 

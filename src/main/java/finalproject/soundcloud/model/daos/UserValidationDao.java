@@ -84,5 +84,12 @@ public class UserValidationDao {
         throw new InvalidUserInputException("You haven't got a profile picture!");
     }
 
+    public static boolean hasUserSongs(File file) throws InvalidUserInputException{
+        if(file.exists()){
+            return true;
+        }
+        throw new InvalidUserInputException("This song doesn't exists in your uploads!");
+    }
+
 
 }

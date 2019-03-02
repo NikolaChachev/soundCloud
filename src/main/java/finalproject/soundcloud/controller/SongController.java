@@ -1,17 +1,24 @@
 package finalproject.soundcloud.controller;
 
 import finalproject.soundcloud.model.daos.SongDao;
+import finalproject.soundcloud.model.daos.UserValidationDao;
 import finalproject.soundcloud.model.dtos.ResponseDto;
+import finalproject.soundcloud.model.dtos.SongDto;
 import finalproject.soundcloud.model.dtos.SongEditDto;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
+import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Base64;
+
 @RestController
 public class SongController extends SessionManagerController{
     @Autowired
@@ -37,4 +44,6 @@ public class SongController extends SessionManagerController{
         responseDto.setResponse("test successful");
         return responseDto;
     }
+
+
 }
