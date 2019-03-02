@@ -31,7 +31,7 @@ public class User {
     private String email;
     @Column(name = "user_type")
     @Type(type = "org.hibernate.type.NumericBooleanType")
-    private boolean isPro;
+    private int userType;
     @Column(name = "first_name")
     private String firstName;
     @Column(name = "second_name")
@@ -48,7 +48,7 @@ public class User {
                 ", password='" + password + '\'' +
                 ", profilePicture='" + profilePicture + '\'' +
                 ", email='" + email + '\'' +
-                ", isPro=" + isPro +
+                ", userType=" + userType+
                 '}';
     }
 }

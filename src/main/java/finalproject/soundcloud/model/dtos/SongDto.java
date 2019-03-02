@@ -8,5 +8,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SongDto{
+    String songName;
+    boolean isPublic;
     String songFilePath;
 }

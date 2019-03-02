@@ -12,6 +12,6 @@ public class UserRegisterDto {
     private String username;
     private String firstPassword;
     private String secondPassword;
-    private String isPro;
+    private String userType;
     private String email;
 }

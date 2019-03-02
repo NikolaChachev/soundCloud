@@ -1,23 +1,18 @@
 package finalproject.soundcloud.controller;
 
 import finalproject.soundcloud.model.daos.SongDao;
-import finalproject.soundcloud.model.daos.UserValidationDao;
 import finalproject.soundcloud.model.dtos.ResponseDto;
-import finalproject.soundcloud.model.dtos.SongDto;
 import finalproject.soundcloud.model.dtos.SongEditDto;
+import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
-import org.apache.commons.io.IOUtils;
+import finalproject.soundcloud.util.exceptions.NotLoggedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.Base64;
 
 @RestController
 public class SongController extends SessionManagerController{
@@ -30,19 +25,42 @@ public class SongController extends SessionManagerController{
 
 
     @PostMapping(value = "/users/{id}/songs")
-    public ResponseDto likeSong(@RequestBody SongEditDto songId, HttpSession session) throws Exception{
+    public ResponseDto rateSong(@RequestBody SongEditDto songId, HttpSession session, @RequestParam("q") boolean q) throws Exception{
         if(songId == null){
-            throw new DoesNotExistException("bad request! bitch");
+            throw new DoesNotExistException("bad request!");
         }
         User user = (User) session.getAttribute(LOGGED);
         isUserLogged(session);
-        return songDao.likeSong(songId.getSongId(),user);
+        return songDao.rateSong(songId.getSongId(),user,q);
     }
-    @PostMapping(value = "songs")
-    public ResponseDto dislikeSong(){
-        ResponseDto responseDto = new ResponseDto();
-        responseDto.setResponse("test successful");
-        return responseDto;
+    @PostMapping(value = "/songs/{id}/repost")
+    public ResponseDto repostSong(HttpSession session, @PathVariable long id)
+            throws NotLoggedException, DoesNotExistException , InvalidUserInputException{
+        User user = (User) session.getAttribute(LOGGED);
+        isUserLogged(session);
+        Song song = songRepository.findById(id);
+        if(song == null){
+            throw new DoesNotExistException("song");
+        }
+        if(songDao.hasItPosted(user,id)){
+            throw new InvalidUserInputException("you can not repost a song you have already reposted");
+        }
+        return songDao.repostSong(user,id);
+    }
+
+    @PostMapping(value = "/songs/{id}/unpost")
+    public ResponseDto unpostSong(HttpSession session, @PathVariable long id)
+            throws NotLoggedException, DoesNotExistException, InvalidUserInputException {
+        User user = (User) session.getAttribute(LOGGED);
+        isUserLogged(session);
+        Song song = songRepository.findById(id);
+        if(song == null){
+            throw new DoesNotExistException("song");
+        }
+        if(!songDao.hasItPosted(user,id)){
+            throw new InvalidUserInputException("you can not unpost a song you have not posted");
+        }
+        return songDao.unpostSong(user,id);
     }
 
 
