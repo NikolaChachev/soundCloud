@@ -5,19 +5,20 @@ import finalproject.soundcloud.model.daos.UserDao;
 import finalproject.soundcloud.model.daos.UserValidationDao;
 import finalproject.soundcloud.model.dtos.*;
 import finalproject.soundcloud.model.pojos.User;
+import finalproject.soundcloud.model.repostitories.UserRepository;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
+import finalproject.soundcloud.util.exceptions.UploadLimitReachedException;
 import finalproject.soundcloud.util.exceptions.UserNotFoundException;
-import finalproject.soundcloud.model.repostitories.UserRepository;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Base64;
-import java.util.List;
 
 @RestController
 public class UserController extends SessionManagerController{
@@ -43,7 +44,7 @@ public class UserController extends SessionManagerController{
             user.setUsername(registerDto.getUsername());
             user.setPassword(registerDto.getFirstPassword());
             user.setEmail(registerDto.getEmail());
-            user.setPro(Boolean.parseBoolean(registerDto.getIsPro()));
+            user.setUserType(Integer.parseInt(registerDto.getUserType()));
             userRepository.save(user);
             logUser(session,user);
             responseDto.setResponse("Your registration was successfull");
@@ -160,7 +161,10 @@ public class UserController extends SessionManagerController{
             FileOutputStream fos = new FileOutputStream(newImage);
             fos.write(bytes);
             //todo
-            //songDao.uploadSong(fos,user);
+            if(!songDao.canUploadSong(user,newImage)){
+                throw new UploadLimitReachedException();
+            }
+            songDao.uploadSong(name,user,dto,newImage);
             responseDto.setResponse("Songs uploaded successfully");
             return responseDto;
         }
