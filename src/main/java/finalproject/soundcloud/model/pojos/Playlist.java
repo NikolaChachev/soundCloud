@@ -16,7 +16,7 @@ import javax.persistence.Table;
 @Setter
 @Entity
 @Table(name = "playlists")
-public class Playlist {
+public class Playlist implements SoundCloudSearch{
     @Id
     @Column(name = "playlist_id")
     private long id;

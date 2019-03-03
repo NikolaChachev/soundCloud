@@ -37,12 +37,5 @@ public class UserDao {
 
     }
 
-    public List<User> showAllUser(String username){
-        String sql = "SELECT * FROM users where userName like ?";
-
-        List<User> users = jdbcTemplate.query(sql, new Object[]{"%"+username+"%"},
-                new BeanPropertyRowMapper<>(User.class));
-        return users;
-    }
 
 }

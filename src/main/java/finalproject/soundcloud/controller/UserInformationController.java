@@ -15,8 +15,4 @@ public class UserInformationController extends SessionManagerController {
     @Autowired
     UserDao userDao;
 
-    @GetMapping(value = "users/all")
-    public List<User> showAllUsers(@RequestParam (value = "keyWord") String keyWord){
-        return userDao.showAllUser(keyWord);
-    }
 }
