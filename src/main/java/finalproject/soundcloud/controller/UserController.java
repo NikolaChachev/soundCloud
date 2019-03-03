@@ -146,11 +146,8 @@ public class UserController extends SessionManagerController{
             throw new InvalidUserInputException("You are UNAUTHORIZED to delete a picure at this profile.");
         }
     }
-
-
     @PostMapping("users/{id}/uploadSongs")
-
-    public ResponseDto uploadImage(@RequestBody SongDto dto, @PathVariable("id") long id, HttpSession session) throws Exception {
+    public ResponseDto uploadSong(@RequestBody SongDto dto, @PathVariable("id") long id, HttpSession session) throws Exception {
         User user = (User) session.getAttribute(LOGGED);
         isUserLogged(session);
         if(user.getId() == id) {
@@ -186,9 +183,6 @@ public class UserController extends SessionManagerController{
         }
         throw new InvalidUserInputException("You are UNAUTHORIZED to delete a song at this profile.");
     }
-
-
-
 
     private void isUserExists(String username,String email) throws InvalidUserInputException{
         User user = userRepository.findByUsernameOrEmail(username,email);

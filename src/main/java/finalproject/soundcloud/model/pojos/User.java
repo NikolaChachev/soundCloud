@@ -17,7 +17,7 @@ import javax.persistence.Table;
 @Setter
 @Entity
 @Table(name = "users")
-public class User implements SoundCloudSearch{
+public class User {
     @Id
     @Column(name = "user_id")
     private long id;
@@ -30,7 +30,7 @@ public class User implements SoundCloudSearch{
     @Column
     private String email;
     @Column(name = "user_type")
-    @Type(type = "org.hibernate.type.NumericBooleanType")
+//    @Type(type = "org.hibernate.type.NumericBooleanType")
     private int userType;
     @Column(name = "first_name")
     private String firstName;

@@ -1,6 +1,7 @@
 package finalproject.soundcloud.model.daos;
 
 import finalproject.soundcloud.model.dtos.UserEditDto;
+import finalproject.soundcloud.model.dtos.searchDtos.*;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,75 @@ public class UserDao {
                 userId);
 
     }
+    public List<SongSearchDto> getMyUploadedSongs(long userId){
+        String sql = "SELECT * FROM songs JOIN users\n" +
+                "ON songs.user_id = users.user_id WHERE users.user_id = ?";
+        List<SongSearchDto> songs = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(SongSearchDto.class));
+        return songs;
+    }
+    public List<PlaylistsSearchDto> getMyUploadedPlaylists(long userId){
+        String sql = "SELECT * FROM playlists JOIN users\n" +
+                "ON playlists.user_id = users.user_id WHERE users.user_id = ?";
+        List<PlaylistsSearchDto> playlists = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(PlaylistsSearchDto.class));
+        return playlists;
+    }
+    public List<UserSongDto> getMyReposts(long userId) {
+        String sql = "SELECT username,song_name FROM users_reposts JOIN users \n" +
+                "on users.user_id = users_reposts.user_id\n" +
+                "JOIN songs\n" +
+                "on songs.song_id = users_reposts.song_id WHERE user_id = ?";
 
+        List<UserSongDto> reposts = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(UserSongDto.class));
+        return reposts;
+    }
+    public List<UserSongDto> getMyLikedSongs(long userId){
+        String sql = "SELECT username , song_name FROM users_liked_songs\n" +
+                "JOIN users ON users.user_id = users_liked_songs.user_id\n" +
+                "JOIN songs ON songs.song_id = users_liked_songs.song_id WHERE users.user_id = ?";
+        List<UserSongDto> likedSongs = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(UserSongDto.class));
+        return likedSongs;
+    }
+    public List<PlaylistsSearchDto> getMyLikedPlaylists(long userId){
+        String sql = "SELECT username , playlist_name FROM users_liked_playlists\n" +
+                "JOIN users ON users.user_id = users_liked_playlists.user_id\n" +
+                "JOIN playlists ON playlists.playlist_id = users_liked_playlists.playlist_id WHERE users.user_id = ?";
+        List<PlaylistsSearchDto> likedPlaylists = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(PlaylistsSearchDto.class));
+        return likedPlaylists;
+    }
+    public List<UserSearchDto> getAllFollowers(long userId){
+        String sql = "SELECT username FROM users JOIN followers " +
+                "ON followers.follower_id = users.user_id WHERE followers.user_id = ?";
 
+        List<UserSearchDto> followers = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(UserSearchDto.class));
+        return followers;
+    }
+    public List<UserSearchDto> getAllFollowing(long userId){
+        String sql = "SELECT username FROM users JOIN followers ON followers.user_id = users.user_id\n" +
+                "WHERE followers.follower_id = ?;";
+
+        List<UserSearchDto> following = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(UserSearchDto.class));
+        return following;
+    }
+
+    //history
+    public List<HistorySearchDto> getHistory(long userId){
+        String sql = "SELECT username , song_name ,date_and_time FROM users_history\n" +
+                "JOIN users ON users.user_id = users_history.user_id\n" +
+                "JOIN songs ON songs.song_id = users_history.song_id " +
+                "WHERE users.user_id = ?";
+
+        List<HistorySearchDto> history = jdbcTemplate.query(sql, new Object[]{userId},
+                new BeanPropertyRowMapper<>(HistorySearchDto.class));
+        for(HistorySearchDto dto : history){
+            System.out.println(dto);
+        }
+        return history;
+    }
 }

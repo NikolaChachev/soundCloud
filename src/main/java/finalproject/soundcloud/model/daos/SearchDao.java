@@ -3,35 +3,25 @@ package finalproject.soundcloud.model.daos;
 import finalproject.soundcloud.model.dtos.searchDtos.PlaylistsSearchDto;
 import finalproject.soundcloud.model.dtos.searchDtos.SongSearchDto;
 import finalproject.soundcloud.model.dtos.searchDtos.UserSearchDto;
-import finalproject.soundcloud.model.pojos.Playlist;
-import finalproject.soundcloud.model.pojos.Song;
-import finalproject.soundcloud.model.pojos.SoundCloudSearch;
 import finalproject.soundcloud.model.pojos.User;
-import org.aspectj.apache.bcel.util.Play;
+import finalproject.soundcloud.model.repostitories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class SearchDao {
     @Autowired
     JdbcTemplate jdbcTemplate;
+    @Autowired
+    UserRepository userRepository;
 
     public List<UserSearchDto> showAllUsers(String username){
-        String sql = "SELECT username,COUNT(songs.song_name) as songs_count, " +
-                "COUNT(followers.follower_id) as followers_count\n" +
-                "FROM users left JOIN songs\n" +
-                "ON songs.user_id = users.user_id\n" +
-                "LEFT JOIN followers\n" +
-                "ON followers.user_id = users.user_id\n" +
-                "WHERE userName like ? GROUP BY users.user_id ";
-
+        String sql = "SELECT username FROM users WHERE users.username LIKE ?;";
         List<UserSearchDto> users = jdbcTemplate.query(sql, new Object[]{"%"+username+"%"},
                 new BeanPropertyRowMapper<>(UserSearchDto.class));
         return users;

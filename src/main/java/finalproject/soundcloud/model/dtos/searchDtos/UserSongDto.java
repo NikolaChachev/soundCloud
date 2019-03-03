@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserSearchDto {
+public class UserSongDto {
     String username;
+    String song_name;
 }

@@ -2,10 +2,7 @@ package finalproject.soundcloud.controller;
 
 import finalproject.soundcloud.model.pojos.ErrorMessage;
 import finalproject.soundcloud.model.pojos.User;
-import finalproject.soundcloud.util.exceptions.DoesNotExistException;
-import finalproject.soundcloud.util.exceptions.NotLoggedException;
-import finalproject.soundcloud.util.exceptions.SoundCloudException;
-import finalproject.soundcloud.util.exceptions.UserNotFoundException;
+import finalproject.soundcloud.util.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -22,7 +19,7 @@ public abstract class SessionManagerController {
     public ErrorMessage handleNotFound(Exception e){
         return new ErrorMessage(e.getMessage(),HttpStatus.BAD_REQUEST.value(),LocalDateTime.now());
     }
-    @ExceptionHandler({NotLoggedException.class, UserNotFoundException.class})
+    @ExceptionHandler({NotLoggedException.class, UserNotFoundException.class , UnauthorizedUserException.class})
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     public ErrorMessage handleNotLogged(Exception e){
         ErrorMessage msg = new ErrorMessage(e.getMessage(), HttpStatus.UNAUTHORIZED.value(), LocalDateTime.now());
