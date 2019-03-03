@@ -8,7 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Getter
@@ -30,7 +30,7 @@ public class Comment {
     @Column(name = "song_time")
     private long songTime;
     @Column(name = "real_time")
-    private Date time;
+    private LocalDateTime time;
     @Column(name = "parent_id")
     private long parentCommentId;
 }

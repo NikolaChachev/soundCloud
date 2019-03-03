@@ -33,6 +33,7 @@ public class SongController extends SessionManagerController{
         isUserLogged(session);
         return songDao.rateSong(songId.getSongId(),user,q);
     }
+
     @PostMapping(value = "/songs/{id}/repost")
     public ResponseDto repostSong(HttpSession session, @PathVariable long id)
             throws NotLoggedException, DoesNotExistException , InvalidUserInputException{
@@ -61,6 +62,7 @@ public class SongController extends SessionManagerController{
         }
         return songDao.unpostSong(user,id);
     }
+
 
 
 }

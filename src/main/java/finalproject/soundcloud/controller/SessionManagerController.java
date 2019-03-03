@@ -13,7 +13,11 @@ import java.time.LocalDateTime;
 
 public abstract class SessionManagerController {
     public static final String LOGGED = "logged";
-
+    @ExceptionHandler({InvalidActionException.class})
+    @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
+    public ErrorMessage handleInvalidAction(Exception e){
+        return new ErrorMessage(e.getMessage(),HttpStatus.UNAUTHORIZED.value(),LocalDateTime.now());
+    }
     @ExceptionHandler({DoesNotExistException.class})
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ErrorMessage handleNotFound(Exception e){
