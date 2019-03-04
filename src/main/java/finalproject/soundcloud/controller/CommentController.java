@@ -11,10 +11,7 @@ import finalproject.soundcloud.util.exceptions.DoesNotExistException;
 import finalproject.soundcloud.util.exceptions.InvalidActionException;
 import finalproject.soundcloud.util.exceptions.NotLoggedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
@@ -30,6 +27,9 @@ public class CommentController extends SessionManagerController {
     @PostMapping(value = "songs/{id}")
     public ResponseDto addCommentToSong( HttpSession session,
            @RequestBody CommentDto commentDto) throws NotLoggedException, DoesNotExistException {
+        if(commentDto == null){
+            throw new DoesNotExistException("bad request!");
+        }
         isUserLogged(session);
         if(songRepository.findById(commentDto.getSongId()) == null){
             throw new DoesNotExistException("song");
@@ -54,6 +54,14 @@ public class CommentController extends SessionManagerController {
         User user = (User) session.getAttribute(LOGGED);
         return commentDao.removeComment(user.getId(),commentId);
     }
-    
+    @PostMapping(value = "comments/{id}")
+    public ResponseDto rateComment(HttpSession session, @PathVariable("id") long commentId) throws NotLoggedException, DoesNotExistException {
+        isUserLogged(session);
+        if(commentRepository.findById(commentId) == null){
+            throw new DoesNotExistException("comment");
+        }
+        User user = (User) session.getAttribute(LOGGED);
+        return commentDao.rateComment(user.getId(),commentId);
+    }
 }
 

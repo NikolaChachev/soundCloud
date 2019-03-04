@@ -132,4 +132,8 @@ public class SongDao {
                 "VALUES(?,?,?,?,?);";
         jdbcTemplate.update(sql,user.getId(),dto.getSongName(),dto.isPublic(),name,getSongDuration(song).getSeconds());
     }
+
+    public void deleteSongFromPlaylist(){
+
+    }
 }
