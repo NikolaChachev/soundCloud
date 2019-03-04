@@ -12,10 +12,7 @@ import finalproject.soundcloud.util.exceptions.InvalidActionException;
 import finalproject.soundcloud.util.exceptions.NotLoggedException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
@@ -30,7 +27,14 @@ public class CommentController extends SessionManagerController {
     CommentDao commentDao;
     @PostMapping(value = "songs/{id}")
     public ResponseDto addCommentToSong( HttpSession session,
+<<<<<<< HEAD
            @RequestBody CommentDto commentDto) throws SoundCloudException {
+=======
+           @RequestBody CommentDto commentDto) throws NotLoggedException, DoesNotExistException {
+        if(commentDto == null){
+            throw new DoesNotExistException("bad request!");
+        }
+>>>>>>> 785561c46811a4fe09da911678eb1b056594874d
         isUserLogged(session);
         if(songRepository.findById(commentDto.getSongId()) == null){
             throw new DoesNotExistException("song");
@@ -55,6 +59,14 @@ public class CommentController extends SessionManagerController {
         User user = (User) session.getAttribute(LOGGED);
         return commentDao.removeComment(user.getId(),commentId);
     }
-    
+    @PostMapping(value = "comments/{id}")
+    public ResponseDto rateComment(HttpSession session, @PathVariable("id") long commentId) throws NotLoggedException, DoesNotExistException {
+        isUserLogged(session);
+        if(commentRepository.findById(commentId) == null){
+            throw new DoesNotExistException("comment");
+        }
+        User user = (User) session.getAttribute(LOGGED);
+        return commentDao.rateComment(user.getId(),commentId);
+    }
 }
 
