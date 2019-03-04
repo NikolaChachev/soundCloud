@@ -6,10 +6,7 @@ import finalproject.soundcloud.model.daos.UserValidationDao;
 import finalproject.soundcloud.model.dtos.*;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.UserRepository;
-import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
-import finalproject.soundcloud.util.exceptions.SoundCloudException;
-import finalproject.soundcloud.util.exceptions.UploadLimitReachedException;
-import finalproject.soundcloud.util.exceptions.UserNotFoundException;
+import finalproject.soundcloud.util.exceptions.*;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +16,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Base64;
+import java.util.List;
+import java.util.Set;
 
 @RestController
 public class UserController extends SessionManagerController{
@@ -71,7 +70,7 @@ public class UserController extends SessionManagerController{
         responseDto.setResponse("You logged out successfully " + user.getUsername() + " .See you soon!");
         return responseDto;
     }
-    @PutMapping(value = "users/edit/{id}")
+    @PutMapping(value = "users/{id}/edit")
     public ResponseDto editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
                                    HttpSession session) throws SoundCloudException{
         isUserLogged(session);
@@ -84,7 +83,7 @@ public class UserController extends SessionManagerController{
         }
         throw new InvalidUserInputException("You are UNAUTHORIZED to edit this profile.");
     }
-    @DeleteMapping(value = "users/deleteProfile/{id}")
+    @DeleteMapping(value = "users/{id}/deleteProfile")
     public ResponseDto deleteProfile(@PathVariable("id") long userParamId, HttpSession session) throws SoundCloudException{
         isUserLogged(session);
         User user = (User)session.getAttribute(LOGGED);
@@ -182,6 +181,43 @@ public class UserController extends SessionManagerController{
             return responseDto;
         }
         throw new InvalidUserInputException("You are UNAUTHORIZED to delete a song at this profile.");
+    }
+    @PostMapping("users/{id}/follow/{f_id}")
+    public ResponseDto followUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session) throws SoundCloudException{
+        isUserLogged(session);
+        User user = (User) session.getAttribute(LOGGED);
+        User following = userRepository.findById(f_id);
+        if(following == null){
+            throw new UserNotFoundException();
+        }
+        if(user.getId() == id){
+            if(userDao.checkForFollowing(user,following)){
+                throw new InvalidUserInputException("You are already following this user!");
+            }
+            userDao.follow(user,following);
+            responseDto.setResponse("You started following " + following.getUsername());
+            return responseDto;
+        }
+        throw new UnauthorizedUserException();
+    }
+    @PostMapping("users/{id}/unfollow/{f_id}")
+    public ResponseDto unfollowUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session) throws SoundCloudException
+    {
+        isUserLogged(session);
+        User user = (User) session.getAttribute(LOGGED);
+        User following = userRepository.findById(f_id);
+        if(following == null){
+            throw new UserNotFoundException();
+        }
+        if(user.getId() == id){
+            if(!userDao.checkForFollowing(user,following)){
+                throw new InvalidUserInputException("You don't follow this user!");
+            }
+            userDao.unfollow(user,following);
+            responseDto.setResponse("You stop following " + following.getUsername());
+            return responseDto;
+        }
+        throw new UnauthorizedUserException();
     }
 
     private void isUserExists(String username,String email) throws InvalidUserInputException{

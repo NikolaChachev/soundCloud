@@ -3,6 +3,7 @@ package finalproject.soundcloud.model.daos;
 import finalproject.soundcloud.model.dtos.UserEditDto;
 import finalproject.soundcloud.model.dtos.searchDtos.*;
 import finalproject.soundcloud.model.pojos.User;
+import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -93,8 +94,6 @@ public class UserDao {
                 new BeanPropertyRowMapper<>(UserSearchDto.class));
         return following;
     }
-
-    //history
     public List<HistorySearchDto> getHistory(long userId){
         String sql = "SELECT username , song_name ,date_and_time FROM users_history\n" +
                 "JOIN users ON users.user_id = users_history.user_id\n" +
@@ -108,4 +107,28 @@ public class UserDao {
         }
         return history;
     }
+    public boolean checkForFollowing(User user,User following) throws InvalidUserInputException{
+        String sql = "SELECT user_id FROM followers WHERE user_id = ? and follower_id = ?" ;
+
+        if(user.getId() == following.getId()){
+            throw new InvalidUserInputException("You can't follow/unfollow yourself");
+        }
+        List<FollowerDto> users = jdbcTemplate.query(sql, new Object[]{following.getId(),user.getId()},
+                new BeanPropertyRowMapper<>(FollowerDto.class));
+
+        if(users.size() == 0){
+            return false;
+        }
+        return true;
+
+    }
+    public void follow(User user ,User following) {
+        String sql = "INSERT INTO followers(user_id,follower_id) VALUES(?,?)";
+        jdbcTemplate.update(sql,new Object[]{following.getId(),user.getId()});
+    }
+    public void unfollow(User user ,User following) {
+        String sql = "DELETE from followers WHERE user_id = ? and follower_id = ?";
+        jdbcTemplate.update(sql,new Object[]{following.getId(),user.getId()});
+    }
+
 }
