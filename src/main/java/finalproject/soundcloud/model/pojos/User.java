@@ -36,6 +36,8 @@ public class User {
     @Column(name = "city_name")
     private String city;
     private String country;
+    private String activation_key;
+    private int is_active;
 
     @Override
     public String toString() {

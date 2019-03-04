@@ -21,7 +21,7 @@ public class UserInformationController extends SessionManagerController {
     UserDao userDao;
 
     @GetMapping(value = "/users/{id}/uploadedSongs")
-    public List<SongSearchDto> uploadedSongs(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
+    public List<SongSearchDto> uploadedSongs(@PathVariable("id") long id, HttpSession session) throws Exception {
         isUserLogged(session);
         User user =(User)session.getAttribute(LOGGED);
         if(user.getId() == id){

@@ -10,6 +10,7 @@ import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
 import finalproject.soundcloud.util.exceptions.InvalidActionException;
 import finalproject.soundcloud.util.exceptions.NotLoggedException;
+import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +30,7 @@ public class CommentController extends SessionManagerController {
     CommentDao commentDao;
     @PostMapping(value = "songs/{id}")
     public ResponseDto addCommentToSong( HttpSession session,
-           @RequestBody CommentDto commentDto) throws NotLoggedException, DoesNotExistException {
+           @RequestBody CommentDto commentDto) throws SoundCloudException {
         isUserLogged(session);
         if(songRepository.findById(commentDto.getSongId()) == null){
             throw new DoesNotExistException("song");
@@ -49,7 +50,7 @@ public class CommentController extends SessionManagerController {
         return new ResponseDto("comment added!");
     }
     @PostMapping(value = "songs/{id}/comments/{comId}")
-    public ResponseDto removeComment(HttpSession session, @RequestParam("comId") long commentId) throws NotLoggedException, InvalidActionException {
+    public ResponseDto removeComment(HttpSession session, @RequestParam("comId") long commentId) throws SoundCloudException{
         isUserLogged(session);
         User user = (User) session.getAttribute(LOGGED);
         return commentDao.removeComment(user.getId(),commentId);

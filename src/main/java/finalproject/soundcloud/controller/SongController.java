@@ -9,6 +9,7 @@ import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
 import finalproject.soundcloud.util.exceptions.NotLoggedException;
+import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +37,7 @@ public class SongController extends SessionManagerController{
 
     @PostMapping(value = "/songs/{id}/repost")
     public ResponseDto repostSong(HttpSession session, @PathVariable long id)
-            throws NotLoggedException, DoesNotExistException , InvalidUserInputException{
+            throws SoundCloudException {
         User user = (User) session.getAttribute(LOGGED);
         isUserLogged(session);
         Song song = songRepository.findById(id);
@@ -50,7 +51,7 @@ public class SongController extends SessionManagerController{
     }
     @PostMapping(value = "/songs/{id}/unpost")
     public ResponseDto unpostSong(HttpSession session, @PathVariable long id)
-            throws NotLoggedException, DoesNotExistException, InvalidUserInputException {
+            throws SoundCloudException {
         User user = (User) session.getAttribute(LOGGED);
         isUserLogged(session);
         Song song = songRepository.findById(id);
