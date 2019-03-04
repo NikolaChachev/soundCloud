@@ -11,6 +11,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+
 @Component
 public class PlaylistDao {
     @Autowired
@@ -47,5 +49,23 @@ public class PlaylistDao {
         sql = "INSERT INTO playlists_songs(playlist_id,song_id) VALUES(?,?)";
         jdbcTemplate.update(sql,playlistId,songId);
         return new ResponseDto("song successfully added");
+    }
+
+    public boolean removeSong(long playistId, long songId) {
+        String sql = "DELETE FROM playlits_songs WHERE playlist_id = ? AND song_id = ?";
+        int done = jdbcTemplate.update(sql,playistId,songId);
+        return done != 0;
+    }
+    public boolean deleteAllUserPlaylists(User user) throws UnauthorizedUserException {
+        ArrayList<Playlist> playlists = playlistRepository.getAllByUserId(user.getId());
+        for (Playlist p : playlists){
+            deletePlaylist(user,p);
+        }
+        return true;
+    }
+    public boolean removeSongFromAllPlaylists(long songId){
+        String sql = "DELETE FROM playlists_songs WHERE song_id = ?";
+        int done = jdbcTemplate.update(sql,songId);
+        return done != 0;
     }
 }

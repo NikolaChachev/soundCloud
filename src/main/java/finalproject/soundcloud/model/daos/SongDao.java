@@ -26,6 +26,10 @@ public class SongDao {
     JdbcTemplate jdbcTemplate;
     @Autowired
     SongRepository songRepository;
+    @Autowired
+    CommentDao commentDao;
+    @Autowired
+    PlaylistDao playlistDao;
     public static final String SONGS_DIR = "D:\\ITtalents\\FinalProject\\";
     public ResponseDto rateSong(long songId, User user, boolean clickedLike) throws DoesNotExistException {
         String sql = "SELECT * FROM songs WHERE song_id LIKE ?";
@@ -133,7 +137,19 @@ public class SongDao {
         jdbcTemplate.update(sql,user.getId(),dto.getSongName(),dto.isPublic(),name,getSongDuration(song).getSeconds());
     }
 
-    public void deleteSongFromPlaylist(){
+    public boolean deleteSong(long songId)  {
+        playlistDao.removeSongFromAllPlaylists(songId);
+        commentDao.removeAllCommentsFromSong(songId);
+        String sql = "DELETE FROM songs WHERE song_id = ?";
+        int done = jdbcTemplate.update(sql,songId);
+        return done != 0;
+    }
 
+    public boolean deleteAllUserSongs(long userId){
+        ArrayList<Song> songs = songRepository.findAllByUserId(userId);
+        for (Song s : songs){
+            deleteSong(s.getId());
+        }
+        return true;
     }
 }

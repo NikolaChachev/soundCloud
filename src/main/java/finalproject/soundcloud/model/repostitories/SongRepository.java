@@ -9,4 +9,5 @@ public interface SongRepository extends JpaRepository<Song,Long> {
     ArrayList<Song> findAllBySongName(String name);
     Song findById(long id);
     ArrayList<Song> findAllByUserId(long userId);
+
 }

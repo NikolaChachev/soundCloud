@@ -2,12 +2,14 @@ package finalproject.soundcloud.model.daos;
 
 import finalproject.soundcloud.model.dtos.ResponseDto;
 import finalproject.soundcloud.model.pojos.Comment;
+import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.CommentRepository;
-import finalproject.soundcloud.util.exceptions.InvalidActionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
 
 @Component
 public class CommentDao {
@@ -15,14 +17,13 @@ public class CommentDao {
     JdbcTemplate jdbcTemplate;
     @Autowired
     CommentRepository commentRepository;
-    public ResponseDto removeComment(long userId,long commentId) throws InvalidActionException {
-        if(commentRepository.findById(commentId).getUserId() != userId){
-            throw new InvalidActionException();
-        }
+
+    public ResponseDto removeComment(long commentId)  {
         commentRepository.removeAllByParentCommentId(commentRepository.findById(commentId).getParentCommentId());
         commentRepository.removeById(commentId);
         return new ResponseDto("comment removed !");
     }
+
     public ResponseDto rateComment(long userId, long commentId) {
         String sql = "SELECT * FROM users_liked_comments WHERE user_id = ? AND comment_id = ?";
         RowCountCallbackHandler callbackHandler = new RowCountCallbackHandler();
@@ -42,4 +43,21 @@ public class CommentDao {
         jdbcTemplate.update(sql,userId,commentId);
         return new ResponseDto("action complete!");
     }
+
+    public boolean removeAllUserComments(User user)  {
+        ArrayList<Comment> comments = commentRepository.getAllByUserId(user.getId());
+        for (Comment c : comments){
+            removeComment(c.getId());
+        }
+        return true;
+    }
+
+    public boolean removeAllCommentsFromSong(long songId)  {
+        ArrayList<Comment> parents = commentRepository.getAllByParentCommentIdIsAndSongId(0,songId);
+        for (Comment c : parents){
+            removeComment(c.getId());
+        }
+        return true;
+    }
+
 }
