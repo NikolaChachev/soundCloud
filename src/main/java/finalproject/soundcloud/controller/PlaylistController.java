@@ -83,5 +83,5 @@ public class PlaylistController extends SessionManagerController {
             throw new UnauthorizedUserException();
         }
         return new ResponseDto("all playlists removed!");
-    }*/
+    }
 }

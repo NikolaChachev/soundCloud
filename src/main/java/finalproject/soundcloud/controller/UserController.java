@@ -6,6 +6,7 @@ import finalproject.soundcloud.model.daos.UserValidationDao;
 import finalproject.soundcloud.model.dtos.*;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.UserRepository;
+import finalproject.soundcloud.util.BCryptUtil;
 import finalproject.soundcloud.util.MailUtil;
 import finalproject.soundcloud.util.exceptions.*;
 import org.apache.commons.io.IOUtils;
@@ -45,47 +46,35 @@ public class UserController extends SessionManagerController{
         isUserExists(registerDto.getUsername(),registerDto.getEmail());
         User user = new User();
         user.setUsername(registerDto.getUsername());
-        user.setPassword(registerDto.getFirstPassword());
+        user.setPassword(BCryptUtil.hashPassword(registerDto.getFirstPassword()));
         user.setEmail(registerDto.getEmail());
         user.setUserType(Integer.parseInt(registerDto.getUserType()));
         String autoGenerateKey = getRandomString();
-        user.setActivation_key(autoGenerateKey);
+        user.setActivationKey(autoGenerateKey);
         userRepository.save(user);
         new Thread(()->{
             try {
-                MailUtil.sendMail("Activation code : "+autoGenerateKey  ,user.getEmail());
+                MailUtil.sendMail("Click here http://localhost:8090/activateAccount?activation_key="+autoGenerateKey,user.getEmail());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
         responseDto.setResponse("Your registration was successfull." +
-                "Now enter the activation code you received on your email");
+                "Now open the link received on your email");
         return responseDto;
     }
-    @PostMapping(value = "/activateAccount")
-    public ResponseDto activateUserAccaount(@RequestBody UserActivationDto actDto, HttpSession session) throws SoundCloudException {
-        if(actDto == null){
-            throw new SoundCloudException("Empty input");
-        }
-        String username = actDto.getUsername();
-        String password = actDto.getPassword().trim();
-        String activationCode = actDto.getActivation_key();
-        User user = userRepository.findFirstByUsernameAndPassword(username,password);
-        if(user==null){
-            throw new UserNotFoundException();
-        }
+    @GetMapping(value = "/activateAccount")
+    public ResponseDto activateUserAccaount(@RequestParam(value = "activation_key") String activationKey, HttpSession session) throws SoundCloudException {
+        User user = userRepository.findByActivationKey(activationKey);
+        System.out.println(user);
         if(user.getIs_active() == 1){
             responseDto.setResponse("Your profile is already activated");
             return responseDto;
         }
-        if(user.getActivation_key().equals(activationCode)){
-            user.setIs_active(1);
-            userRepository.save(user);
-            logUser(session,user);
-            responseDto.setResponse("Registration verified");
-            return responseDto;
-        }
-        throw new InvalidUserInputException("Active key isn't valid. Try again");
+        user.setIs_active(1);
+        userRepository.save(user);
+        responseDto.setResponse("Registration verified");
+        return responseDto;
     }
     @PostMapping(value = "/signin")
     public ResponseDto signIn(@RequestBody UserLogInDto logDto,HttpSession session) throws SoundCloudException {
@@ -95,9 +84,12 @@ public class UserController extends SessionManagerController{
         String username = logDto.getUsername();
         String password = logDto.getPassword().trim();
         UserValidationDao.validateLogInParameters(username,password);
-        User user = userRepository.findFirstByUsernameAndPassword(username,password);
-        if(user==null){
+        User user = userRepository.findByUsername(username);
+        if(user==null || !BCryptUtil.checkPass(password,user.getPassword())){
             throw new UserNotFoundException();
+        }
+        if(user.getIs_active()==0){
+            throw new InvalidUserInputException("Please enter the activation key first");
         }
         logUser(session,user);
         responseDto.setResponse( "Welcome , " + user.getUsername());

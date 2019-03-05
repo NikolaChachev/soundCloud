@@ -35,8 +35,11 @@ public class User {
     private String secondName;
     @Column(name = "city_name")
     private String city;
+    @Column
     private String country;
-    private String activation_key;
+    @Column(name = "activation_key")
+    private String activationKey;
+    @Column
     private int is_active;
 
     @Override

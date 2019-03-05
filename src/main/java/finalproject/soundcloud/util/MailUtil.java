@@ -9,6 +9,8 @@ import java.util.Properties;
 
 public class MailUtil {
 
+    private MailUtil(){};
+
     public static void sendMail(String messageText,String email) throws Exception{
         Properties props = new Properties();
         props.put("mail.smtp.auth", true);
