@@ -45,7 +45,7 @@ public abstract class SessionManagerController {
     }
 
     //Session check
-    public static boolean isUserLogged(HttpSession session) throws SoundCloudException {
+    public static User getLoggedUser(HttpSession session) throws SoundCloudException {
         if(session.isNew() || session.getAttribute(LOGGED) == null) {
             throw new NotLoggedException();
         }
@@ -53,7 +53,7 @@ public abstract class SessionManagerController {
         if(user.getIs_active() == 0){
             throw new InvalidUserInputException("Your profile isn't activeted");
         }
-        return true;
+        return user;
     }
 
     public static void logUser(HttpSession session, User user){
@@ -61,7 +61,7 @@ public abstract class SessionManagerController {
     }
 
     public static void logOutUser(HttpSession session) throws Exception{
-        if(isUserLogged(session)) {
+        if(getLoggedUser(session)!=null) {
             session.setAttribute(LOGGED, null);
             return;
         }

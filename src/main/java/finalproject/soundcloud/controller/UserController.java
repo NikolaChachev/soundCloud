@@ -38,24 +38,35 @@ public class UserController extends SessionManagerController{
 
     @PostMapping(value = "/createAccount")
     public ResponseDto regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws Exception {
+        if(registerDto==null){
+            throw new SoundCloudException("Empty input");
+        }
         UserValidationDao.validateUserRegData(registerDto);
-            isUserExists(registerDto.getUsername(),registerDto.getEmail());
-            User user = new User();
-            user.setUsername(registerDto.getUsername());
-            user.setPassword(registerDto.getFirstPassword());
-            user.setEmail(registerDto.getEmail());
-            user.setUserType(Integer.parseInt(registerDto.getUserType()));
-            String autoGenerateKey = getRandomString();
-            user.setActivation_key(autoGenerateKey);
-            userRepository.save(user);
-            MailUtil.sendMail("Activation code : "  + autoGenerateKey  , user.getEmail());
-            responseDto.setResponse("Your registration was successfull." +
-                    "Now enter the activation code you received on your email");
-            return responseDto;
-
+        isUserExists(registerDto.getUsername(),registerDto.getEmail());
+        User user = new User();
+        user.setUsername(registerDto.getUsername());
+        user.setPassword(registerDto.getFirstPassword());
+        user.setEmail(registerDto.getEmail());
+        user.setUserType(Integer.parseInt(registerDto.getUserType()));
+        String autoGenerateKey = getRandomString();
+        user.setActivation_key(autoGenerateKey);
+        userRepository.save(user);
+        new Thread(()->{
+            try {
+                MailUtil.sendMail("Activation code : "+autoGenerateKey  ,user.getEmail());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+        responseDto.setResponse("Your registration was successfull." +
+                "Now enter the activation code you received on your email");
+        return responseDto;
     }
     @PostMapping(value = "/activateAccount")
     public ResponseDto activateUserAccaount(@RequestBody UserActivationDto actDto, HttpSession session) throws SoundCloudException {
+        if(actDto == null){
+            throw new SoundCloudException("Empty input");
+        }
         String username = actDto.getUsername();
         String password = actDto.getPassword().trim();
         String activationCode = actDto.getActivation_key();
@@ -78,6 +89,9 @@ public class UserController extends SessionManagerController{
     }
     @PostMapping(value = "/signin")
     public ResponseDto signIn(@RequestBody UserLogInDto logDto,HttpSession session) throws SoundCloudException {
+        if(logDto == null){
+            throw new SoundCloudException("Empty input");
+        }
         String username = logDto.getUsername();
         String password = logDto.getPassword().trim();
         UserValidationDao.validateLogInParameters(username,password);
@@ -99,8 +113,10 @@ public class UserController extends SessionManagerController{
     @PutMapping(value = "users/{id}/edit")
     public ResponseDto editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
                                    HttpSession session) throws Exception{
-        isUserLogged(session);
-        User user = (User)session.getAttribute(LOGGED);
+        if(editDto == null){
+            throw new SoundCloudException("Empty input");
+        }
+        User user = getLoggedUser(session);
         long userId = user.getId();
         if(userId == userParamId) {
             userDao.updateUser(editDto, user, userId);
@@ -110,9 +126,9 @@ public class UserController extends SessionManagerController{
         throw new InvalidUserInputException("You are UNAUTHORIZED to edit this profile.");
     }
     @DeleteMapping(value = "users/{id}/deleteProfile")
-    public ResponseDto deleteProfile(@PathVariable("id") long userParamId, HttpSession session) throws Exception{
-        isUserLogged(session);
-        User user = (User)session.getAttribute(LOGGED);
+    public ResponseDto deleteProfile(@PathVariable("id") long userParamId, HttpSession session)
+            throws Exception{
+        User user = getLoggedUser(session);
         long userId = user.getId();
         if(userId == userParamId) {
             //todo delete all users's files
@@ -124,9 +140,12 @@ public class UserController extends SessionManagerController{
         throw new InvalidUserInputException("You are UNAUTHORIZED to delete this profile.");
     }
     @PostMapping("users/{id}/uploadImages")
-    public ResponseDto uploadImage(@RequestBody ImageDto dto,@PathVariable ("id") long id, HttpSession session) throws Exception {
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+    public ResponseDto uploadImage(@RequestBody ImageDto dto,@PathVariable ("id") long id, HttpSession session)
+            throws Exception {
+        if(dto == null){
+            throw new SoundCloudException("Empty input");
+        }
+        User user = getLoggedUser(session);
         if(user.getId() == id) {
             String base64 = dto.getPicturePath();
             byte[] bytes = Base64.getDecoder().decode(base64);
@@ -145,8 +164,7 @@ public class UserController extends SessionManagerController{
     }
     @GetMapping(value="users/{id}/profileImage", produces = "image/png")
     public byte[] downloadImage(@PathVariable("id") long id, HttpSession session) throws Exception {
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+        User user = getLoggedUser(session);
         if(user.getId()==id) {
             File newImage = new File(IMAGE_DIR + user.getProfilePicture());
             UserValidationDao.hasUserProfilePicture(newImage);
@@ -157,8 +175,7 @@ public class UserController extends SessionManagerController{
     }
     @DeleteMapping("users/{id}/deleteProfileImage")
     public ResponseDto deleteImage(@PathVariable ("id") long id, HttpSession session) throws Exception {
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+        User user = getLoggedUser(session);
         if(user.getId() == id) {
             File newImage = new File(IMAGE_DIR + user.getProfilePicture());
             UserValidationDao.hasUserProfilePicture(newImage);
@@ -172,21 +189,25 @@ public class UserController extends SessionManagerController{
         }
     }
     @PostMapping("users/{id}/uploadSongs")
-    public ResponseDto uploadSong(@RequestBody SongDto dto, @PathVariable("id") long id, HttpSession session) throws Exception {
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+    public ResponseDto uploadSong(@RequestBody SongDto dto, @PathVariable("id") long id, HttpSession session)
+            throws Exception {
+        if(dto == null){
+            throw new SoundCloudException("Empty input");
+        }
+        User user = getLoggedUser(session);
         if(user.getId() == id) {
             String base64 = dto.getSongFilePath();
             byte[] bytes = Base64.getDecoder().decode(base64);
-            String name = user.getId() + System.currentTimeMillis() + ".mp3";
-            File newImage = new File(SONGS_DIR + name);
-            FileOutputStream fos = new FileOutputStream(newImage);
-            fos.write(bytes);
-            //todo
-            if(!songDao.canUploadSong(user,newImage)){
+            String name = user.getId() + System.currentTimeMillis() +".mp3";
+            File song = new File(SONGS_DIR + name);
+            FileOutputStream fos = new FileOutputStream(song);
+            if(!songDao.canUploadSong(user,song)){
                 throw new UploadLimitReachedException();
             }
-            songDao.uploadSong(name,user,dto,newImage);
+            System.out.println("Predi zapisvaneto");
+            fos.write(bytes);
+            System.out.println("Sled zapisvaneto" + song);
+            songDao.uploadSong(name,user,dto,song);
             responseDto.setResponse("Songs uploaded successfully");
             return responseDto;
         }
@@ -195,9 +216,9 @@ public class UserController extends SessionManagerController{
         }
     }
     @DeleteMapping(value="users/{id}/songs/{song_name}")
-    public ResponseDto deleteSong(@PathVariable("id") long id,@PathVariable String song_name, HttpSession session) throws Exception {
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+    public ResponseDto deleteSong(@PathVariable("id") long id,@PathVariable String song_name, HttpSession session)
+            throws Exception {
+        User user = getLoggedUser(session);
         if(user.getId() == id) {
             File song = new File(SONGS_DIR + song_name);
             UserValidationDao.hasUserSongs(song);
@@ -209,9 +230,9 @@ public class UserController extends SessionManagerController{
         throw new InvalidUserInputException("You are UNAUTHORIZED to delete a song at this profile.");
     }
     @PostMapping("users/{id}/follow/{f_id}")
-    public ResponseDto followUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session) throws Exception{
-        isUserLogged(session);
-        User user = (User) session.getAttribute(LOGGED);
+    public ResponseDto followUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session)
+            throws Exception{
+        User user = getLoggedUser(session);
         User following = userRepository.findById(f_id);
         if(following == null){
             throw new UserNotFoundException();
@@ -227,10 +248,9 @@ public class UserController extends SessionManagerController{
         throw new UnauthorizedUserException();
     }
     @PostMapping("users/{id}/unfollow/{f_id}")
-    public ResponseDto unfollowUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session) throws Exception
-    {
-        isUserLogged(session);
-        User user = (User) session.getAttribute(LOGGED);
+    public ResponseDto unfollowUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session)
+            throws Exception {
+        User user = getLoggedUser(session);
         User following = userRepository.findById(f_id);
         if(following == null){
             throw new UserNotFoundException();
@@ -245,14 +265,7 @@ public class UserController extends SessionManagerController{
         }
         throw new UnauthorizedUserException();
     }
-    @PostMapping("/sendMail")
-    public ResponseDto sendMail() throws Exception{
-        MailUtil mailUtil = new MailUtil();
-        String activationCode = "";
-        mailUtil.sendMail("activation code :  " + activationCode , "hype1884@gmail.com");
-        responseDto.setResponse("Mail send successfully");
-        return responseDto;
-    }
+
 
     private void isUserExists(String username,String email) throws InvalidUserInputException{
         User user = userRepository.findByUsernameOrEmail(username,email);

@@ -21,74 +21,72 @@ public class UserInformationController extends SessionManagerController {
     UserDao userDao;
 
     @GetMapping(value = "/users/{id}/uploadedSongs")
-    public List<SongSearchDto> uploadedSongs(@PathVariable("id") long id, HttpSession session) throws Exception {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<SongSearchDto> uploadedSongs(@PathVariable("id") long id, HttpSession session)
+            throws Exception {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getMyUploadedSongs(user.getId());
         }
         throw new UnauthorizedUserException();
     }
     @GetMapping(value = "/users/{id}/uploadedPlaylists")
-    public List<PlaylistsSearchDto> showMyUploadedPlaylists(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<PlaylistsSearchDto> showMyUploadedPlaylists(@PathVariable("id") long id, HttpSession session)
+            throws SoundCloudException {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getMyUploadedPlaylists(user.getId());
         }
         throw new UnauthorizedUserException();
     }
     @GetMapping(value = "/users/{id}/reposts")
-    public List<UserSongDto> getMyReposts(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<UserSongDto> getMyReposts(@PathVariable("id") long id, HttpSession session)
+            throws SoundCloudException {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getMyReposts(user.getId());
         }
         throw new UnauthorizedUserException();
     }
     @GetMapping(value = "/users/{id}/likedSongs")
-    public List<UserSongDto> likedSongs(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<UserSongDto> likedSongs(@PathVariable("id") long id, HttpSession session)
+            throws SoundCloudException {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getMyLikedSongs(user.getId());
         }
         throw new UnauthorizedUserException();
     }
     @GetMapping(value = "/users/{id}/likedPlaylists")
-    public List<PlaylistsSearchDto> likedPlaylists(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<PlaylistsSearchDto> likedPlaylists(@PathVariable("id") long id, HttpSession session)
+            throws SoundCloudException {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getMyLikedPlaylists(user.getId());
         }
         throw new UnauthorizedUserException();
     }
     @GetMapping(value = "/users/{id}/followers")
-    public List<UserSearchDto> followers(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<UserSearchDto> followers(@PathVariable("id") long id, HttpSession session)
+            throws SoundCloudException {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getAllFollowers(user.getId());
         }
         throw new UnauthorizedUserException();
     }
     @GetMapping(value = "/users/{id}/following")
-    public List<UserSearchDto> following(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<UserSearchDto> following(@PathVariable("id") long id, HttpSession session)
+            throws SoundCloudException {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getAllFollowing(user.getId());
         }
         throw new UnauthorizedUserException();
     }
-
-    //repair
     @GetMapping(value = "/users/{id}/history")
-    public List<HistorySearchDto> history(@PathVariable("id") long id, HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user =(User)session.getAttribute(LOGGED);
+    public List<HistorySearchDto> history(@PathVariable("id") long id, HttpSession session)
+            throws SoundCloudException {
+        User user = getLoggedUser(session);
         if(user.getId() == id){
             return userDao.getHistory(user.getId());
         }

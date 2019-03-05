@@ -29,7 +29,8 @@ public class SearchDao {
 
     public List<SongSearchDto> showAllSongs(String songName){
         String sql = "SELECT * FROM songs JOIN users\n" +
-                "ON songs.user_id = users.user_id WHERE song_name like ? AND is_public = TRUE";
+                "ON songs.user_id = users.user_id WHERE song_name like ? AND is_public = TRUE ";
+
         List<SongSearchDto> songs = jdbcTemplate.query(sql, new Object[]{"%"+songName+"%"},
                 new BeanPropertyRowMapper<>(SongSearchDto.class));
         return songs;

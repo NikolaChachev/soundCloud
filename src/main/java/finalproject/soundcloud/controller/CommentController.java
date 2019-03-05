@@ -34,6 +34,7 @@ public class CommentController extends SessionManagerController {
         if(commentDto == null){
             throw new InvalidActionException();
         }
+
         isUserLogged(session);
         if(songRepository.findById(commentDto.getSongId()) == null){
             throw new DoesNotExistException("song");
