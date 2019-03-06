@@ -7,6 +7,7 @@ import finalproject.soundcloud.model.dtos.searchDtos.UserSearchDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,9 +24,9 @@ public class SearchController {
         return searchDao.showAllUsers(username);
     }
     @GetMapping(value = "/search/songs/{song_name}")
-    public List<SongSearchDto> searchSongs (@PathVariable("song_name") String song_name)
-    {
-        return searchDao.showAllSongs(song_name);
+    public List<SongSearchDto> searchSongs (@PathVariable("song_name") String song_name,
+                                            @RequestParam(value = "filter",required = false) String filter) {
+        return searchDao.showAllSongs(song_name,filter);
     }
     @GetMapping(value = "/search/playlists/{playlists}")
     public List<PlaylistsSearchDto> searchPlaylists (@PathVariable("playlists") String playlists)

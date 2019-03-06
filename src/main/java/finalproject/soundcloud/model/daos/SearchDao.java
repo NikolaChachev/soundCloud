@@ -27,10 +27,14 @@ public class SearchDao {
         return users;
     }
 
-    public List<SongSearchDto> showAllSongs(String songName){
+    public List<SongSearchDto> showAllSongs(String songName,String filter){
         String sql = "SELECT * FROM songs JOIN users\n" +
                 "ON songs.user_id = users.user_id WHERE song_name like ? AND is_public = TRUE ";
+        if(filter!=null) {
+            sql = sql.concat("ORDER BY " + filter + " DESC");
+        }
 
+        System.out.println(sql);
         List<SongSearchDto> songs = jdbcTemplate.query(sql, new Object[]{"%"+songName+"%"},
                 new BeanPropertyRowMapper<>(SongSearchDto.class));
         return songs;
@@ -47,7 +51,7 @@ public class SearchDao {
     public HashMap<String,List> showAllInformation(String keyWord){
         HashMap<String,List> allInfo = new HashMap<>();
         allInfo.put("users" , showAllUsers(keyWord));
-        allInfo.put("songs" , showAllSongs(keyWord));
+        allInfo.put("songs" , showAllSongs(keyWord,null));
         allInfo.put("playlists" , showAllPlaylists(keyWord));
         return allInfo;
     }
