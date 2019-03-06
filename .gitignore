@@ -17,7 +17,9 @@ HELP.md
 *.iml
 *.ipr
 *application.properties
+*log4j.properties
 *pom.xml
+*logs.txt
 <<<<<<< HEAD
 =======
 

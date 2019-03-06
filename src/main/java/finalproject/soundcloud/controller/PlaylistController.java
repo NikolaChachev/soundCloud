@@ -75,7 +75,7 @@ public class PlaylistController extends SessionManagerController {
         }
         return new ResponseDto("song removed from playlist!");
     }
-    /*@DeleteMapping(value = "users/{id}/playlists")
+    @DeleteMapping(value = "users/{id}/playlists")
     public ResponseDto deleteAllUserPlaylists(@PathVariable("id") long userId,HttpSession session) throws SoundCloudException {
         isUserLogged(session);
         User user = (User) session.getAttribute(LOGGED);

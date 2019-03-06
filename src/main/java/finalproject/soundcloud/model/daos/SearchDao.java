@@ -33,8 +33,6 @@ public class SearchDao {
         if(filter!=null) {
             sql = sql.concat("ORDER BY " + filter + " DESC");
         }
-
-        System.out.println(sql);
         List<SongSearchDto> songs = jdbcTemplate.query(sql, new Object[]{"%"+songName+"%"},
                 new BeanPropertyRowMapper<>(SongSearchDto.class));
         return songs;

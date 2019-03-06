@@ -3,6 +3,7 @@ package finalproject.soundcloud.controller;
 import finalproject.soundcloud.model.pojos.ErrorMessage;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.util.exceptions.*;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,20 +13,26 @@ import java.time.LocalDateTime;
 
 
 public abstract class SessionManagerController {
+
+    static Logger logger = Logger.getLogger(SessionManagerController.class.getName());
+
     public static final String LOGGED = "logged";
     @ExceptionHandler({InvalidActionException.class})
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     public ErrorMessage handleInvalidAction(Exception e){
+        logger.error(e.getMessage());
         return new ErrorMessage(e.getMessage(),HttpStatus.UNAUTHORIZED.value(),LocalDateTime.now());
     }
     @ExceptionHandler({DoesNotExistException.class})
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ErrorMessage handleNotFound(Exception e){
+        logger.error(e.getMessage());
         return new ErrorMessage(e.getMessage(),HttpStatus.BAD_REQUEST.value(),LocalDateTime.now());
     }
     @ExceptionHandler({NotLoggedException.class, UserNotFoundException.class , UnauthorizedUserException.class})
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     public ErrorMessage handleNotLogged(Exception e){
+        logger.error(e.getMessage());
         ErrorMessage msg = new ErrorMessage(e.getMessage(), HttpStatus.UNAUTHORIZED.value(), LocalDateTime.now());
         return msg;
     }
@@ -33,6 +40,7 @@ public abstract class SessionManagerController {
     @ExceptionHandler({SoundCloudException.class})
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ErrorMessage handleMyErrors(Exception e){
+        logger.error(e.getMessage());
         ErrorMessage msg = new ErrorMessage(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDateTime.now());
         return msg;
     }
@@ -40,6 +48,7 @@ public abstract class SessionManagerController {
     @ExceptionHandler({Exception.class})
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorMessage handleOtherErrors(Exception e){
+        logger.error(e.getMessage());
         ErrorMessage msg = new ErrorMessage(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), LocalDateTime.now());
         return msg;
     }
