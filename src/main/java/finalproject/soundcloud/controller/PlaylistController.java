@@ -23,65 +23,67 @@ public class PlaylistController extends SessionManagerController {
     PlaylistDao playlistDao;
     @Autowired
     PlaylistRepository playlistRepository;
+
     @PostMapping(value = "users/{id}/createPlaylist")
-    public ResponseDto createPlaylist(@RequestBody PlaylistDto playlistDto, HttpSession session,@PathVariable("id") long userId) throws SoundCloudException {
-        isUserLogged(session);
-        User user = (User) session.getAttribute(LOGGED);
-        if(user.getId() != userId){
+    public ResponseDto createPlaylist(@RequestBody PlaylistDto playlistDto, HttpSession session, @PathVariable("id") long userId) throws SoundCloudException {
+        User user = getLoggedUser(session);
+        if (user.getId() != userId) {
             throw new UnauthorizedUserException();
         }
-        playlistDao.createPlaylist(user,playlistDto);
+        playlistDao.createPlaylist(user, playlistDto);
         return new ResponseDto("playlist created!");
     }
+
     @DeleteMapping(value = "users/{id}/playlists/{plId}")
-    public ResponseDto deletePlaylist( @PathVariable("plId") long playlistId,@PathVariable("id") long userId,
-           HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user = (User) session.getAttribute(LOGGED);
+    public ResponseDto deletePlaylist(@PathVariable("plId") long playlistId, @PathVariable("id") long userId,
+                                      HttpSession session) throws SoundCloudException {
+        User user = getLoggedUser(session);
         Playlist playlist = playlistRepository.getById(playlistId);
-        if(playlist == null){
+        if (playlist == null) {
             throw new DoesNotExistException("playlist");
         }
-        if(user.getId() != userId){
+        if (user.getId() != userId) {
             throw new UnauthorizedUserException();
         }
-        return playlistDao.deletePlaylist(user,playlist);
+        return playlistDao.deletePlaylist(user, playlist);
     }
+
     @PostMapping(value = "users/{id}/playlists/{plId}/addSong/{sId}")
-    public ResponseDto addSongToPlaylist(@PathVariable("plId") long playlistId,@PathVariable("sId") long songId,HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
+    public ResponseDto addSongToPlaylist(@PathVariable("plId") long playlistId, @PathVariable("sId") long songId, HttpSession session) throws SoundCloudException {
+        User user = getLoggedUser(session);
         Playlist playlist = playlistRepository.getById(playlistId);
-        User user = (User) session.getAttribute(LOGGED);
-        if(playlist == null){
+        if (playlist == null) {
             throw new DoesNotExistException("playlist");
         }
-        if(playlist.getUserId() != user.getId()){
+        if (playlist.getUserId() != user.getId()) {
             throw new UnauthorizedUserException();
         }
-        return playlistDao.addSong(playlistId,songId);
+        return playlistDao.addSong(playlistId, songId);
     }
+
     @DeleteMapping(value = "users/{id}/playlists/{plId}/songs/{sId}")
-    public ResponseDto removeSongFromPlaylist(@PathVariable("id") long userId,@PathVariable("sId") long songId,@PathVariable("plId") long playistId , HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
-        User user = (User) session.getAttribute(LOGGED);
-        if(user.getId() != userId){
+    public ResponseDto removeSongFromPlaylist(@PathVariable("id") long userId, @PathVariable("sId") long songId, @PathVariable("plId") long playistId, HttpSession session) throws SoundCloudException {
+        User user = getLoggedUser(session);
+        if (user.getId() != userId) {
             throw new UnauthorizedUserException();
         }
-        if(playlistRepository.getById(playistId) == null){
+        if (playlistRepository.getById(playistId) == null) {
             throw new DoesNotExistException("playlist");
         }
-        if(!playlistDao.removeSong(playistId,songId)){
+        if (!playlistDao.removeSong(playistId, songId)) {
             return new ResponseDto("oops something went wrong! try again later");
         }
         return new ResponseDto("song removed from playlist!");
     }
-    @DeleteMapping(value = "users/{id}/playlists")
+
+    /*@DeleteMapping(value = "users/{id}/playlists")
+>>>>>>> Stashed changes
     public ResponseDto deleteAllUserPlaylists(@PathVariable("id") long userId,HttpSession session) throws SoundCloudException {
-        isUserLogged(session);
+        getLoggedUser(session);
         User user = (User) session.getAttribute(LOGGED);
         if(user.getId() != userId){
             throw new UnauthorizedUserException();
         }
         return new ResponseDto("all playlists removed!");
-    }
+    }*/
 }

@@ -8,7 +8,6 @@ import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
-import finalproject.soundcloud.util.exceptions.NotLoggedException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -30,16 +29,14 @@ public class SongController extends SessionManagerController{
         if(songId == null){
             throw new DoesNotExistException("bad request!");
         }
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+        User user = getLoggedUser(session);
         return songDao.rateSong(songId.getSongId(),user,q);
     }
 
     @PostMapping(value = "/songs/{id}/repost")
     public ResponseDto repostSong(HttpSession session, @PathVariable long id)
             throws SoundCloudException {
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+        User user = getLoggedUser(session);
         Song song = songRepository.findById(id);
         if(song == null){
             throw new DoesNotExistException("song");
@@ -52,8 +49,7 @@ public class SongController extends SessionManagerController{
     @PostMapping(value = "/songs/{id}/unpost")
     public ResponseDto unpostSong(HttpSession session, @PathVariable long id)
             throws SoundCloudException {
-        User user = (User) session.getAttribute(LOGGED);
-        isUserLogged(session);
+        User user = getLoggedUser(session);
         Song song = songRepository.findById(id);
         if(song == null){
             throw new DoesNotExistException("song");

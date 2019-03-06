@@ -35,7 +35,7 @@ public class CommentController extends SessionManagerController {
             throw new InvalidActionException();
         }
 
-        isUserLogged(session);
+        getLoggedUser(session);
         if(songRepository.findById(commentDto.getSongId()) == null){
             throw new DoesNotExistException("song");
         }
@@ -55,8 +55,7 @@ public class CommentController extends SessionManagerController {
     }
     @PostMapping(value = "songs/{id}/comments/{comId}")
     public ResponseDto removeComment(HttpSession session, @PathVariable("comId") long commentId,@PathVariable("id") long songId) throws SoundCloudException{
-        isUserLogged(session);
-        User user = (User) session.getAttribute(LOGGED);
+        User user = getLoggedUser(session);
 
         if(user.getId() != songRepository.findById(songId).getUserId()
                 || commentRepository.findById(commentId).getUserId() != user.getId()){
@@ -66,11 +65,10 @@ public class CommentController extends SessionManagerController {
     }
     @PostMapping(value = "comments/{id}")
     public ResponseDto rateComment(HttpSession session, @PathVariable("id") long commentId) throws SoundCloudException {
-        isUserLogged(session);
+        User user = getLoggedUser(session);
         if(commentRepository.findById(commentId) == null){
             throw new DoesNotExistException("comment");
         }
-        User user = (User) session.getAttribute(LOGGED);
         return commentDao.rateComment(user.getId(),commentId);
     }
 }
