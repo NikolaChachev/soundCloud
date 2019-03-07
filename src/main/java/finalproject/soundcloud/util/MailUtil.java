@@ -11,7 +11,7 @@ public class MailUtil {
 
     private MailUtil(){};
 
-    public static void sendMail(String messageText,String email) throws Exception{
+    public static void sendMail(String subject,String messageText,String email) throws Exception{
         Properties props = new Properties();
         props.put("mail.smtp.auth", true);
         props.put("mail.smtp.auth", "true");
@@ -30,7 +30,7 @@ public class MailUtil {
         message.setFrom(new InternetAddress("no-reply@gmail.com"));
         message.setRecipients(
                 Message.RecipientType.TO, InternetAddress.parse(email));
-        message.setSubject("Confirm your registration");
+        message.setSubject(subject);
         MimeBodyPart mimeBodyPart = new MimeBodyPart();
         mimeBodyPart.setContent(messageText, "text/html");
 

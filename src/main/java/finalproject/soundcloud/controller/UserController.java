@@ -54,7 +54,9 @@ public class UserController extends SessionManagerController{
         userRepository.save(user);
         new Thread(()->{
             try {
-                MailUtil.sendMail("Click here http://localhost:8090/activateAccount?activation_key="+autoGenerateKey,user.getEmail());
+                MailUtil.sendMail("Confirm your registration",
+                        "Click here http://localhost:8090/activateAccount?activation_key="+autoGenerateKey,
+                        user.getEmail());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -64,7 +66,7 @@ public class UserController extends SessionManagerController{
         return responseDto;
     }
     @GetMapping(value = "/activateAccount")
-    public ResponseDto activateUserAccaount(@RequestParam(value = "activation_key") String activationKey, HttpSession session) throws SoundCloudException {
+    public ResponseDto activateUserAccount(@RequestParam(value = "activation_key") String activationKey, HttpSession session) throws SoundCloudException {
         User user = userRepository.findByActivationKey(activationKey);
         System.out.println(user);
         if(user.getIs_active() == 1){
@@ -101,6 +103,39 @@ public class UserController extends SessionManagerController{
         logOutUser(session);
         responseDto.setResponse("You logged out successfully " + user.getUsername() + " .See you soon!");
         return responseDto;
+    }
+    @PostMapping(value = "/forgotPassword")
+    public ResponseDto forgotPassword(@RequestParam ("email") String email)throws UserNotFoundException{
+        User user = userRepository.findByEmail(email);
+        if(user==null){
+            throw new UserNotFoundException();
+        }
+        new Thread(()->{
+            try {
+                MailUtil.sendMail("Reset passwod","Open this link to reset your password:" +
+                        " http://localhost:8090/password_reset/"+user.getId(),user.getEmail());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+        responseDto.setResponse("Email send successfully.Now you can reset your password");
+        return responseDto;
+    }
+    @PostMapping(value = "/password_reset/{user_id}")
+    public ResponseDto resetPassword(@PathVariable("user_id") long id, @RequestBody UserRegisterDto resetPass,HttpSession session) throws SoundCloudException{
+        String fPassword = resetPass.getFirstPassword();
+        String sPassword = resetPass.getSecondPassword();
+        if(UserValidationDao.validatePassword(fPassword) && fPassword.equals(sPassword)){
+            User user = userRepository.findById(id);
+            user.setPassword(BCryptUtil.hashPassword(fPassword));
+            userRepository.save(user);
+            logUser(session,user);
+            responseDto.setResponse("Your password was reset");
+            return responseDto;
+
+        }
+        throw new InvalidUserInputException("Passwords MUST be equals");
+
     }
     @PutMapping(value = "users/{id}/edit")
     public ResponseDto editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
@@ -196,9 +231,7 @@ public class UserController extends SessionManagerController{
             if(!songDao.canUploadSong(user,song)){
                 throw new UploadLimitReachedException();
             }
-            System.out.println("Predi zapisvaneto");
             fos.write(bytes);
-            System.out.println("Sled zapisvaneto" + song);
             songDao.uploadSong(name,user,dto,song);
             responseDto.setResponse("Songs uploaded successfully");
             return responseDto;
