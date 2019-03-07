@@ -1,5 +1,4 @@
 package finalproject.soundcloud.model.daos;
-import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 import finalproject.soundcloud.model.dtos.ResponseDto;
 import finalproject.soundcloud.model.dtos.SongDto;
 import finalproject.soundcloud.model.pojos.Song;
@@ -135,6 +134,7 @@ public class SongDao {
         String sql = "INSERT INTO songs(user_id,song_name,is_public,file_path,length) " +
                 "VALUES(?,?,?,?,?);";
         jdbcTemplate.update(sql,user.getId(),dto.getSongName(),dto.isPublic(),name,getSongDuration(song).getSeconds());
+        //TODO ADD THE SONG IN AWS
     }
 
     public boolean deleteSong(long songId)  {
