@@ -1,4 +1,4 @@
-package finalproject.soundcloud.controller;
+package finalproject.soundcloud.util;
 
 //import com.amazonaws.auth.AWSCredentials;
 //import com.amazonaws.auth.BasicAWSCredentials;
