@@ -24,7 +24,7 @@ public class SongController extends SessionManagerController{
     SongDao songDao;
 
 
-    @PostMapping(value = "/users/{id}/songs")
+    @PutMapping(value = "/users/{id}/songs")
     public ResponseDto rateSong(@RequestBody SongEditDto songId, HttpSession session, @RequestParam("q") boolean q) throws Exception{
         if(songId == null){
             throw new DoesNotExistException("bad request!");
@@ -33,7 +33,7 @@ public class SongController extends SessionManagerController{
         return songDao.rateSong(songId.getSongId(),user,q);
     }
 
-    @PostMapping(value = "/songs/{id}/repost")
+    @PutMapping(value = "/songs/{id}/repost")
     public ResponseDto repostSong(HttpSession session, @PathVariable long id)
             throws SoundCloudException {
         User user = getLoggedUser(session);
@@ -46,7 +46,7 @@ public class SongController extends SessionManagerController{
         }
         return songDao.repostSong(user,id);
     }
-    @PostMapping(value = "/songs/{id}/unpost")
+    @PutMapping(value = "/songs/{id}/unpost")
     public ResponseDto unpostSong(HttpSession session, @PathVariable long id)
             throws SoundCloudException {
         User user = getLoggedUser(session);

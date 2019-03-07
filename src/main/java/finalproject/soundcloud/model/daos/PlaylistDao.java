@@ -5,7 +5,6 @@ import finalproject.soundcloud.model.dtos.ResponseDto;
 import finalproject.soundcloud.model.pojos.Playlist;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.PlaylistRepository;
-import finalproject.soundcloud.util.exceptions.UnauthorizedUserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
@@ -27,14 +26,10 @@ public class PlaylistDao {
         playlistRepository.save(playlist);
     }
 
-    public ResponseDto deletePlaylist(User user, Playlist playlist) throws UnauthorizedUserException {
-        if(user.getId() != playlist.getUserId()){
-            throw new UnauthorizedUserException();
-        }
+    public ResponseDto deletePlaylist(User user, Playlist playlist)  {
         String sql = "DELETE FROM playlists_songs WHERE playlist_id = ?";
         jdbcTemplate.update(sql,playlist.getId());
-        sql = "DELETE FROM playlists WHERE playlis_id = ?";
-        jdbcTemplate.update(sql,playlist.getId());
+        playlistRepository.removeById(playlist.getId());
         return new ResponseDto("playlist deleted!");
     }
 
@@ -56,7 +51,7 @@ public class PlaylistDao {
         int done = jdbcTemplate.update(sql,playistId,songId);
         return done != 0;
     }
-    public boolean deleteAllUserPlaylists(User user) throws UnauthorizedUserException {
+    public boolean deleteAllUserPlaylists(User user)  {
         ArrayList<Playlist> playlists = playlistRepository.getAllByUserId(user.getId());
         for (Playlist p : playlists){
             deletePlaylist(user,p);

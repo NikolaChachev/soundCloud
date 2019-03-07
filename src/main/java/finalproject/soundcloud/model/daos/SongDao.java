@@ -101,8 +101,7 @@ public class SongDao {
         long totalTime = 0;
         ArrayList<Song> songs = songRepository.findAllByUserId(user.getId());
         for (Song s : songs){
-            File song = new File(SONGS_DIR + s.getFilePath());
-            totalTime += getSongDuration(song).getSeconds();
+            totalTime +=(long) s.getLength();
         }
         return totalTime;
     }
@@ -138,7 +137,7 @@ public class SongDao {
     }
 
     public boolean deleteSong(long songId)  {
-        playlistDao.removeSongFromAllPlaylists(songId);
+       // playlistDao.removeSongFromAllPlaylists(songId);
         commentDao.removeAllCommentsFromSong(songId);
         String sql = "DELETE FROM songs WHERE song_id = ?";
         int done = jdbcTemplate.update(sql,songId);

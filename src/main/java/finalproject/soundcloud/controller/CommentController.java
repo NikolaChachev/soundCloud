@@ -12,10 +12,7 @@ import finalproject.soundcloud.util.exceptions.InvalidActionException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import finalproject.soundcloud.util.exceptions.UnauthorizedUserException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
@@ -53,7 +50,7 @@ public class CommentController extends SessionManagerController {
         commentRepository.save(comment);
         return new ResponseDto("comment added!");
     }
-    @PostMapping(value = "songs/{id}/comments/{comId}")
+    @DeleteMapping(value = "songs/{id}/comments/{comId}")
     public ResponseDto removeComment(HttpSession session, @PathVariable("comId") long commentId,@PathVariable("id") long songId) throws SoundCloudException{
         User user = getLoggedUser(session);
 
@@ -63,7 +60,7 @@ public class CommentController extends SessionManagerController {
         }
         return commentDao.removeComment(commentId);
     }
-    @PostMapping(value = "comments/{id}")
+    @PutMapping(value = "comments/{id}")
     public ResponseDto rateComment(HttpSession session, @PathVariable("id") long commentId) throws SoundCloudException {
         User user = getLoggedUser(session);
         if(commentRepository.findById(commentId) == null){
