@@ -113,16 +113,23 @@ CONSTRAINT FOREIGN KEY (user_id) REFERENCES users(user_id),
 CONSTRAINT FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id),
 CONSTRAINT PRIMARY KEY (user_id,playlist_id)
 );
+CREATE TABLE users_liked_comments(
+user_id INT,
+comment_id INT,
+CONSTRAINT FOREIGN KEY (user_id) REFERENCES users(user_id),
+CONSTRAINT FOREIGN KEY (comment_id) REFERENCES comments(comment_id),
+CONSTRAINT PRIMARY KEY (user_id,comment_id)
+);
 
 ALTER TABLE users
 ADD COLUMN first_name VARCHAR(50) NULL DEFAULT NULL,
 ADD COLUMN second_name VARCHAR(50) NULL DEFAULT NULL,
 ADD COLUMN city_name VARCHAR(50) NULL DEFAULT NULL,
-ADD COLUMN country VARCHAR(50) NULL DEFAULT NULL
+ADD COLUMN country VARCHAR(50) NULL DEFAULT NULL;
 
 
 
-
+DELETE FROM users_disliked_songs WHERE song_id = 2;
 
 
 
