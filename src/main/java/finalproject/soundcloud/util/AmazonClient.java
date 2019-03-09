@@ -56,11 +56,12 @@ public class AmazonClient {
         amazonS3.putObject(new PutObjectRequest(bucketName, fileName, file)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
     }
-    public String uploadFile(MultipartFile multipartFile) throws IOException {
+    public String uploadFile(File file) throws IOException {
 
         String fileUrl = "";
-            File file = convertMultiPartToFile(multipartFile);
-            String fileName = generateFileName(multipartFile);
+            //File file = convertMultiPartToFile(multipartFile);
+            //String fileName = generateFileName(multipartFile);
+            String fileName = file.getName();
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
             uploadFileTos3bucket(fileName, file);
             file.delete();

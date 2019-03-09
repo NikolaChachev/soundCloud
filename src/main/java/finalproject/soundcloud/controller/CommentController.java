@@ -25,14 +25,13 @@ public class CommentController extends SessionManagerController {
     CommentRepository commentRepository;
     @Autowired
     CommentDao commentDao;
-    @PostMapping(value = "songs/{id}")
-    public ResponseDto addCommentToSong( HttpSession session,
+    @PostMapping(value = "songs/{id}/comment")
+    public ResponseDto addCommentToSong( HttpSession session,@PathVariable("id") long songId,
            @RequestBody CommentDto commentDto) throws SoundCloudException {
         if(commentDto == null){
             throw new InvalidActionException();
         }
-
-        getLoggedUser(session);
+        User user = getLoggedUser(session);
         if(songRepository.findById(commentDto.getSongId()) == null){
             throw new DoesNotExistException("song");
         }
@@ -41,8 +40,8 @@ public class CommentController extends SessionManagerController {
         }
         Comment comment = new Comment();
         comment.setParentCommentId(commentDto.getParentId());
-        comment.setSongId(commentDto.getSongId());
-        comment.setUserId(commentDto.getUserId());
+        comment.setSongId(songId);
+        comment.setUserId(user.getId());
         comment.setLikes(0);
         comment.setSongTime(commentDto.getSongTime());
         comment.setText(commentDto.getText());
@@ -50,11 +49,11 @@ public class CommentController extends SessionManagerController {
         commentRepository.save(comment);
         return new ResponseDto("comment added!");
     }
-    @DeleteMapping(value = "songs/{id}/comments/{comId}")
-    public ResponseDto removeComment(HttpSession session, @PathVariable("comId") long commentId,@PathVariable("id") long songId) throws SoundCloudException{
+    @DeleteMapping(value = "comments/{comId}")
+    public ResponseDto removeComment(HttpSession session, @PathVariable("comId") long commentId) throws SoundCloudException{
         User user = getLoggedUser(session);
 
-        if(user.getId() != songRepository.findById(songId).getUserId()
+        if(user.getId() != songRepository.findById(commentRepository.findById(commentId).getSongId()).getUserId()
                 || commentRepository.findById(commentId).getUserId() != user.getId()){
             throw new UnauthorizedUserException();
         }
