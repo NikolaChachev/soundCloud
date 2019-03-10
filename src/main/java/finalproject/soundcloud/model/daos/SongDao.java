@@ -38,8 +38,8 @@ public class SongDao {
          // check if the song has been liked/disliked before
          sql = "DELETE FROM users_disliked_songs WHERE song_id = ? AND user_id = ?";
          int changed = jdbcTemplate.update(sql,songId,user.getId());
-         if(changed != 0){
-             Song song = songRepository.findById(songId);
+        Song song = songRepository.findById(songId);
+        if(changed != 0){
              song.setDislikes(song.getDislikes() - 1);
              songRepository.save(song);
              if(!clickedLike)
@@ -48,7 +48,6 @@ public class SongDao {
          sql = " DELETE FROM users_liked_songs WHERE song_id = ? AND user_id = ?";
          changed = jdbcTemplate.update(sql,songId,user.getId());
          if(changed != 0 ){
-             Song song = songRepository.findById(songId);
              song.setLikes(song.getLikes() - 1);
              songRepository.save(song);
              if (clickedLike)
@@ -56,10 +55,13 @@ public class SongDao {
          } // if it hasn`t been like/dislike it now
          if(clickedLike){
              sql = "INSERT INTO users_liked_songs(user_id,song_id) VALUES(?,?)";
+             song.setLikes(song.getLikes() + 1);
          }
          else{
              sql = "INSERT INTO users_disliked_songs(user_id,song_id) VALUES(?,?)";
+             song.setDislikes(song.getDislikes() + 1);
          }
+         songRepository.save(song);
         jdbcTemplate.update(sql, user.getId(),songId);
         ResponseDto responseDto = new ResponseDto();
          responseDto.setResponse("action complete!");
@@ -131,11 +133,10 @@ public class SongDao {
         return Duration.ofSeconds(Math.round(durationInSeconds));
     }
 
-    public void uploadSong(String name, User user, SongDto dto,File song) throws IOException {
+    public void uploadSong(String filePath, User user, SongDto dto,File song) throws IOException {
         String sql = "INSERT INTO songs(user_id,song_name,is_public,file_path,length) " +
                 "VALUES(?,?,?,?,?);";
-        jdbcTemplate.update(sql,user.getId(),dto.getSongName(),dto.isPublic(),name,getSongDuration(song).getSeconds());
-        //TODO ADD THE SONG IN AWS
+        jdbcTemplate.update(sql,user.getId(),dto.getSongName(),dto.isPublic(),filePath,getSongDuration(song).getSeconds());
         AmazonClient amazonClient = new AmazonClient();
         amazonClient.uploadFile(song);
     }

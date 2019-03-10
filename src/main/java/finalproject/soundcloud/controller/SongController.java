@@ -2,6 +2,7 @@ package finalproject.soundcloud.controller;
 
 import finalproject.soundcloud.model.daos.SongDao;
 import finalproject.soundcloud.model.dtos.ResponseDto;
+import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
@@ -21,15 +22,14 @@ public class SongController extends SessionManagerController{
     @Autowired
     SongDao songDao;
 
-    //TODO MAKE EDIT SONG FUNCTION
-
     @PutMapping(value = "/songs/{songId}")
-    public ResponseDto rateSong(@PathVariable("songId") long songId, HttpSession session, @RequestParam("like") boolean isLike) throws Exception{
+    public Song rateSong(@PathVariable("songId") long songId, HttpSession session, @RequestParam("like") boolean isLike) throws Exception{
         if(songRepository.findById(songId) == null){
             throw new DoesNotExistException("song");
         }
         User user = getLoggedUser(session);
-        return songDao.rateSong(songId,user,isLike);
+        songDao.rateSong(songId,user,isLike);
+        return songRepository.findById(songId);
     }
 
     @PutMapping(value = "/songs/{id}/repost")

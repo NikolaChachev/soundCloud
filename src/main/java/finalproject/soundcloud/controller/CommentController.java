@@ -32,7 +32,7 @@ public class CommentController extends SessionManagerController {
             throw new InvalidActionException();
         }
         User user = getLoggedUser(session);
-        if(songRepository.findById(commentDto.getSongId()) == null){
+        if(songRepository.findById(songId) == null){
             throw new DoesNotExistException("song");
         }
         if(commentDto.getParentId() != 0 && commentRepository.findById(commentDto.getParentId()) == null){

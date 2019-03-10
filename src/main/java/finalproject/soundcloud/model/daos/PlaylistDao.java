@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 
@@ -25,7 +26,7 @@ public class PlaylistDao {
         playlist.setPublic(playlistDto.isPublic());
         playlistRepository.save(playlist);
     }
-
+    @Transactional
     public ResponseDto deletePlaylist(User user, Playlist playlist)  {
         String sql = "DELETE FROM playlists_songs WHERE playlist_id = ?";
         jdbcTemplate.update(sql,playlist.getId());
@@ -34,7 +35,7 @@ public class PlaylistDao {
     }
 
     public ResponseDto addSong(long playlistId, long songId) {
-        String sql = "SELECT * FROM playlists_songs WHERE playist_id = ? AND song_id = ?";
+        String sql = "SELECT * FROM playlists_songs WHERE playlist_id = ? AND song_id = ?";
         RowCountCallbackHandler callbackHandler = new RowCountCallbackHandler();
         jdbcTemplate.query(sql,new Object[]{playlistId,songId},callbackHandler);
         int rowCount = callbackHandler.getRowCount();
@@ -47,7 +48,7 @@ public class PlaylistDao {
     }
 
     public boolean removeSong(long playistId, long songId) {
-        String sql = "DELETE FROM playlits_songs WHERE playlist_id = ? AND song_id = ?";
+        String sql = "DELETE FROM playlists_songs WHERE playlist_id = ? AND song_id = ?";
         int done = jdbcTemplate.update(sql,playistId,songId);
         return done != 0;
     }
