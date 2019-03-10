@@ -12,10 +12,7 @@ import finalproject.soundcloud.util.exceptions.InvalidActionException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
 import finalproject.soundcloud.util.exceptions.UnauthorizedUserException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
@@ -28,15 +25,14 @@ public class CommentController extends SessionManagerController {
     CommentRepository commentRepository;
     @Autowired
     CommentDao commentDao;
-    @PostMapping(value = "songs/{id}")
-    public ResponseDto addCommentToSong( HttpSession session,
+    @PostMapping(value = "songs/{id}/comment")
+    public ResponseDto addCommentToSong( HttpSession session,@PathVariable("id") long songId,
            @RequestBody CommentDto commentDto) throws SoundCloudException {
         if(commentDto == null){
             throw new InvalidActionException();
         }
-
-        getLoggedUser(session);
-        if(songRepository.findById(commentDto.getSongId()) == null){
+        User user = getLoggedUser(session);
+        if(songRepository.findById(songId) == null){
             throw new DoesNotExistException("song");
         }
         if(commentDto.getParentId() != 0 && commentRepository.findById(commentDto.getParentId()) == null){
@@ -44,8 +40,8 @@ public class CommentController extends SessionManagerController {
         }
         Comment comment = new Comment();
         comment.setParentCommentId(commentDto.getParentId());
-        comment.setSongId(commentDto.getSongId());
-        comment.setUserId(commentDto.getUserId());
+        comment.setSongId(songId);
+        comment.setUserId(user.getId());
         comment.setLikes(0);
         comment.setSongTime(commentDto.getSongTime());
         comment.setText(commentDto.getText());
@@ -53,17 +49,17 @@ public class CommentController extends SessionManagerController {
         commentRepository.save(comment);
         return new ResponseDto("comment added!");
     }
-    @PostMapping(value = "songs/{id}/comments/{comId}")
-    public ResponseDto removeComment(HttpSession session, @PathVariable("comId") long commentId,@PathVariable("id") long songId) throws SoundCloudException{
+    @DeleteMapping(value = "comments/{comId}")
+    public ResponseDto removeComment(HttpSession session, @PathVariable("comId") long commentId) throws SoundCloudException{
         User user = getLoggedUser(session);
 
-        if(user.getId() != songRepository.findById(songId).getUserId()
+        if(user.getId() != songRepository.findById(commentRepository.findById(commentId).getSongId()).getUserId()
                 || commentRepository.findById(commentId).getUserId() != user.getId()){
             throw new UnauthorizedUserException();
         }
         return commentDao.removeComment(commentId);
     }
-    @PostMapping(value = "comments/{id}")
+    @PutMapping(value = "comments/{id}")
     public ResponseDto rateComment(HttpSession session, @PathVariable("id") long commentId) throws SoundCloudException {
         User user = getLoggedUser(session);
         if(commentRepository.findById(commentId) == null){

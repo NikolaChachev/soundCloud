@@ -9,8 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-
 @Component
 public class CommentDao {
     @Autowired
@@ -19,7 +17,6 @@ public class CommentDao {
     CommentRepository commentRepository;
 
     public ResponseDto removeComment(long commentId)  {
-        commentRepository.removeAllByParentCommentId(commentRepository.findById(commentId).getParentCommentId());
         commentRepository.removeById(commentId);
         return new ResponseDto("comment removed !");
     }
@@ -45,18 +42,12 @@ public class CommentDao {
     }
 
     public boolean removeAllUserComments(User user)  {
-        ArrayList<Comment> comments = commentRepository.getAllByUserId(user.getId());
-        for (Comment c : comments){
-            removeComment(c.getId());
-        }
+       commentRepository.removeAllByUserId(user.getId());
         return true;
     }
 
     public boolean removeAllCommentsFromSong(long songId)  {
-        ArrayList<Comment> parents = commentRepository.getAllByParentCommentIdIsAndSongId(0,songId);
-        for (Comment c : parents){
-            removeComment(c.getId());
-        }
+        commentRepository.removeAllBySongId(songId);
         return true;
     }
 

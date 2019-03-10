@@ -1,5 +1,6 @@
 package finalproject.soundcloud.model.pojos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,13 +22,14 @@ public class User {
     @Column
     private String username;
     @Column
+    @JsonIgnore
     private String password;
     @Column(name = "profile_picture")
+    @JsonIgnore
     private String profilePicture;
     @Column
     private String email;
     @Column(name = "user_type")
-//    @Type(type = "org.hibernate.type.NumericBooleanType")
     private int userType;
     @Column(name = "first_name")
     private String firstName;
@@ -38,8 +40,10 @@ public class User {
     @Column
     private String country;
     @Column(name = "activation_key")
+    @JsonIgnore
     private String activationKey;
     @Column
+    @JsonIgnore
     private int is_active;
 
     @Override

@@ -2,7 +2,6 @@ package finalproject.soundcloud.controller;
 
 import finalproject.soundcloud.model.daos.SongDao;
 import finalproject.soundcloud.model.dtos.ResponseDto;
-import finalproject.soundcloud.model.dtos.SongEditDto;
 import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
@@ -23,22 +22,21 @@ public class SongController extends SessionManagerController{
     @Autowired
     SongDao songDao;
 
-
-    @PostMapping(value = "/users/{id}/songs")
-    public ResponseDto rateSong(@RequestBody SongEditDto songId, HttpSession session, @RequestParam("q") boolean q) throws Exception{
-        if(songId == null){
-            throw new DoesNotExistException("bad request!");
+    @PutMapping(value = "/songs/{songId}")
+    public Song rateSong(@PathVariable("songId") long songId, HttpSession session, @RequestParam("like") boolean isLike) throws Exception{
+        if(songRepository.findById(songId) == null){
+            throw new DoesNotExistException("song");
         }
         User user = getLoggedUser(session);
-        return songDao.rateSong(songId.getSongId(),user,q);
+        songDao.rateSong(songId,user,isLike);
+        return songRepository.findById(songId);
     }
 
-    @PostMapping(value = "/songs/{id}/repost")
+    @PutMapping(value = "/songs/{id}/repost")
     public ResponseDto repostSong(HttpSession session, @PathVariable long id)
             throws SoundCloudException {
         User user = getLoggedUser(session);
-        Song song = songRepository.findById(id);
-        if(song == null){
+        if(songRepository.findById(id) == null){
             throw new DoesNotExistException("song");
         }
         if(songDao.hasItPosted(user,id)){
@@ -46,18 +44,17 @@ public class SongController extends SessionManagerController{
         }
         return songDao.repostSong(user,id);
     }
-    @PostMapping(value = "/songs/{id}/unpost")
-    public ResponseDto unpostSong(HttpSession session, @PathVariable long id)
+    @DeleteMapping(value = "/songs/{id}/unpost")
+    public ResponseDto unpostSong(HttpSession session, @PathVariable("id") long songId)
             throws SoundCloudException {
         User user = getLoggedUser(session);
-        Song song = songRepository.findById(id);
-        if(song == null){
+        if(songRepository.findById(songId) == null){
             throw new DoesNotExistException("song");
         }
-        if(!songDao.hasItPosted(user,id)){
+        if(!songDao.hasItPosted(user,songId)){
             throw new InvalidUserInputException("you can not unpost a song you have not posted");
         }
-        return songDao.unpostSong(user,id);
+        return songDao.unpostSong(user,songId);
     }
 
 

@@ -2,6 +2,7 @@ package finalproject.soundcloud.model.daos;
 
 import finalproject.soundcloud.model.dtos.UserEditDto;
 import finalproject.soundcloud.model.dtos.searchDtos.*;
+import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
@@ -18,8 +19,6 @@ public class UserDao {
 
     public void updateUser(UserEditDto editDto, User user, long userId) throws SoundCloudException {
         String sql = "UPDATE users SET " +
-                "username= COALESCE (? , ?) ," +
-                "password= COALESCE (? , ?)," +
                 "email = COALESCE (? , ?)," +
                 "first_name = COALESCE (? , ? , ' ')," +
                 "second_name= COALESCE (? , ? , ' ')," +
@@ -28,8 +27,6 @@ public class UserDao {
                 " where user_id = ?; ";
 
         jdbcTemplate.update(sql,
-                UserValidationDao.validateUsername(editDto.getUsername()), user.getUsername(),
-                UserValidationDao.validatePassword(editDto.getPassword()) ? editDto.getPassword() : null, user.getPassword(),
                 UserValidationDao.validateEmailAddress(editDto.getEmail()) ? editDto.getEmail() : null, user.getEmail(),
                 UserValidationDao.validateOtherData(editDto.getFirstName()), user.getFirstName(),
                 UserValidationDao.validateOtherData(editDto.getSecondName()), user.getSecondName(),
@@ -79,7 +76,7 @@ public class UserDao {
         return likedPlaylists;
     }
     public List<UserSearchDto> getAllFollowers(long userId){
-        String sql = "SELECT username FROM users JOIN followers " +
+        String sql = "SELECT users.user_id,username FROM users JOIN followers " +
                 "ON followers.follower_id = users.user_id WHERE followers.user_id = ?";
 
         List<UserSearchDto> followers = jdbcTemplate.query(sql, new Object[]{userId},
@@ -87,8 +84,8 @@ public class UserDao {
         return followers;
     }
     public List<UserSearchDto> getAllFollowing(long userId){
-        String sql = "SELECT username FROM users JOIN followers ON followers.user_id = users.user_id\n" +
-                "WHERE followers.follower_id = ?;";
+        String sql = "SELECT users.user_id,username FROM users JOIN followers " +
+                "ON followers.user_id = users.user_id WHERE followers.follower_id = ?;";
 
         List<UserSearchDto> following = jdbcTemplate.query(sql, new Object[]{userId},
                 new BeanPropertyRowMapper<>(UserSearchDto.class));
@@ -121,6 +118,10 @@ public class UserDao {
         }
         return true;
 
+    }
+    public void deleteSong(Song song){
+        String sql = "DELETE FROM songs WHERE song_id = ?";
+        jdbcTemplate.update(sql,song.getId());
     }
     public void follow(User user ,User following) {
         String sql = "INSERT INTO followers(user_id,follower_id) VALUES(?,?)";
