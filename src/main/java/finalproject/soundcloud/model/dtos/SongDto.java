@@ -10,5 +10,4 @@ import lombok.Setter;
 public class SongDto{
     String songName;
     boolean isPublic;
-    String songFilePath;
 }

@@ -4,20 +4,22 @@ import finalproject.soundcloud.model.daos.SongDao;
 import finalproject.soundcloud.model.daos.UserDao;
 import finalproject.soundcloud.model.daos.UserValidationDao;
 import finalproject.soundcloud.model.dtos.*;
+import finalproject.soundcloud.model.dtos.searchDtos.UserSearchDto;
+import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
+import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.model.repostitories.UserRepository;
 import finalproject.soundcloud.util.BCryptUtil;
 import finalproject.soundcloud.util.MailUtil;
 import finalproject.soundcloud.util.exceptions.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.Base64;
 import java.util.Random;
 
 
@@ -27,6 +29,8 @@ public class UserController extends SessionManagerController{
     @Autowired
     UserRepository userRepository;
     @Autowired
+    SongRepository songRepository;
+    @Autowired
     UserDao userDao;
     @Autowired
     SongDao songDao;
@@ -35,10 +39,10 @@ public class UserController extends SessionManagerController{
 
     public static final String IMAGE_DIR = "D:\\ITtalents\\FinalProject\\pictures\\";
     public static final String SONGS_DIR = "D:\\ITtalents\\FinalProject\\songs\\";
-
+    static Logger logger = Logger.getLogger(UserController.class.getName());
 
     @PostMapping(value = "/createAccount")
-    public ResponseDto regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws Exception {
+    public User regUser(@RequestBody UserRegisterDto registerDto,HttpSession session) throws Exception {
         if(registerDto==null){
             throw new SoundCloudException("Empty input");
         }
@@ -48,7 +52,7 @@ public class UserController extends SessionManagerController{
         user.setUsername(registerDto.getUsername());
         user.setPassword(BCryptUtil.hashPassword(registerDto.getFirstPassword()));
         user.setEmail(registerDto.getEmail());
-        user.setUserType(Integer.parseInt(registerDto.getUserType()));
+        user.setUserType(registerDto.getUserType());
         String autoGenerateKey = getRandomString();
         user.setActivationKey(autoGenerateKey);
         userRepository.save(user);
@@ -58,12 +62,10 @@ public class UserController extends SessionManagerController{
                         "Click here http://localhost:8090/activateAccount?activation_key="+autoGenerateKey,
                         user.getEmail());
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
             }
         }).start();
-        responseDto.setResponse("Your registration was successfull." +
-                "Now open the link received on your email");
-        return responseDto;
+        return userRepository.findByUsername(user.getUsername());
     }
     @GetMapping(value = "/activateAccount")
     public ResponseDto activateUserAccount(@RequestParam(value = "activation_key") String activationKey, HttpSession session) throws SoundCloudException {
@@ -79,7 +81,7 @@ public class UserController extends SessionManagerController{
         return responseDto;
     }
     @PostMapping(value = "/signin")
-    public ResponseDto signIn(@RequestBody UserLogInDto logDto,HttpSession session) throws SoundCloudException {
+    public User signIn(@RequestBody UserLogInDto logDto,HttpSession session) throws SoundCloudException {
         if(logDto == null){
             throw new SoundCloudException("Empty input");
         }
@@ -94,8 +96,7 @@ public class UserController extends SessionManagerController{
             throw new InvalidUserInputException("Please enter the activation key first");
         }
         logUser(session,user);
-        responseDto.setResponse( "Welcome , " + user.getUsername());
-        return responseDto;
+        return user;
     }
     @PostMapping(value = "/logout")
     public ResponseDto logOut(HttpSession session) throws Exception{
@@ -137,8 +138,8 @@ public class UserController extends SessionManagerController{
         throw new InvalidUserInputException("Passwords MUST be equals");
 
     }
-    @PutMapping(value = "users/{id}/edit")
-    public ResponseDto editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
+    @PutMapping(value = "/users/{id}/edit")
+    public User editProfile(@RequestBody UserEditDto editDto, @PathVariable("id") long userParamId,
                                    HttpSession session) throws Exception{
         if(editDto == null){
             throw new SoundCloudException("Empty input");
@@ -147,49 +148,44 @@ public class UserController extends SessionManagerController{
         long userId = user.getId();
         if(userId == userParamId) {
             userDao.updateUser(editDto, user, userId);
-            responseDto.setResponse("Successfull update!");
-            return responseDto;
+            return userRepository.findById(user.getId());
         }
-        throw new InvalidUserInputException("You are UNAUTHORIZED to edit this profile.");
+        throw new UnauthorizedUserException();
     }
-    @DeleteMapping(value = "users/{id}/deleteProfile")
-    public ResponseDto deleteProfile(@PathVariable("id") long userParamId, HttpSession session)
+    @DeleteMapping(value = "/users/{id}/deleteProfile")
+    public User deleteProfile(@PathVariable("id") long userParamId, HttpSession session)
             throws Exception{
         User user = getLoggedUser(session);
         long userId = user.getId();
         if(userId == userParamId) {
-            //todo delete all users's files
             userRepository.delete(user);
-            responseDto.setResponse("Your profile has been deleted.We hope to seee you soon!");
             logOut(session);
-            return responseDto;
+            return user;
         }
-        throw new InvalidUserInputException("You are UNAUTHORIZED to delete this profile.");
+        throw new UnauthorizedUserException();
     }
-    @PostMapping("users/{id}/uploadImages")
-    public ResponseDto uploadImage(@RequestBody ImageDto dto,@PathVariable ("id") long id, HttpSession session)
+    @PostMapping("/users/{id}/uploadImages")
+    public ResponseDto uploadImage(@RequestPart(value = "file") MultipartFile file, @PathVariable ("id") long id, HttpSession session)
             throws Exception {
-        if(dto == null){
-            throw new SoundCloudException("Empty input");
-        }
         User user = getLoggedUser(session);
         if(user.getId() == id) {
-            String base64 = dto.getPicturePath();
-            byte[] bytes = Base64.getDecoder().decode(base64);
+            if(user.getProfilePicture() != null){
+                File image = new File(IMAGE_DIR + user.getProfilePicture());
+                image.delete();
+            }
             String name = user.getId() + System.currentTimeMillis() + ".png";
             File newImage = new File(IMAGE_DIR + name);
-            FileOutputStream fos = new FileOutputStream(newImage);
-            fos.write(bytes);
+            file.transferTo(newImage);
             user.setProfilePicture(name);
             userRepository.save(user);
             responseDto.setResponse("Image uploaded successfully");
             return responseDto;
         }
         else {
-            throw new InvalidUserInputException("You are UNAUTHORIZED to upload a picure at this profile.");
+            throw new UnauthorizedUserException();
         }
     }
-    @GetMapping(value="users/{id}/profileImage", produces = "image/png")
+    @GetMapping(value="/users/{id}/profileImage", produces = "image/png")
     public byte[] downloadImage(@PathVariable("id") long id, HttpSession session) throws Exception {
         User user = getLoggedUser(session);
         if(user.getId()==id) {
@@ -198,64 +194,83 @@ public class UserController extends SessionManagerController{
             FileInputStream fis = new FileInputStream(newImage);
             return IOUtils.toByteArray(fis);
         }
-        throw new InvalidUserInputException("You are UNAUTHORIZED to see the picure at this profile.");
+        throw new UnauthorizedUserException();
     }
-    @DeleteMapping("users/{id}/deleteProfileImage")
+    @DeleteMapping("/users/{id}/deleteProfileImage")
     public ResponseDto deleteImage(@PathVariable ("id") long id, HttpSession session) throws Exception {
         User user = getLoggedUser(session);
         if(user.getId() == id) {
-            File newImage = new File(IMAGE_DIR + user.getProfilePicture());
-            UserValidationDao.hasUserProfilePicture(newImage);
-            newImage.delete();
+            File image = new File(IMAGE_DIR + user.getProfilePicture());
+            UserValidationDao.hasUserProfilePicture(image);
+            image.delete();
             user.setProfilePicture(null);
             responseDto.setResponse("Image deleted successfully");
             return responseDto;
         }
-        else {
-            throw new InvalidUserInputException("You are UNAUTHORIZED to delete a picure at this profile.");
-        }
+        throw new UnauthorizedUserException();
     }
-    @PostMapping("users/{id}/uploadSongs")
-    public ResponseDto uploadSong(@RequestBody SongDto dto, @PathVariable("id") long id, HttpSession session)
-            throws Exception {
-        if(dto == null){
-            throw new SoundCloudException("Empty input");
-        }
+    @PostMapping("users/{user_id}/addSong")
+    public Song addSong(@RequestBody SongDto songDto,@PathVariable("user_id") long id, HttpSession session) throws SoundCloudException{
         User user = getLoggedUser(session);
-        if(user.getId() == id) {
-            String base64 = dto.getSongFilePath();
-            byte[] bytes = Base64.getDecoder().decode(base64);
-            String name = user.getId() + System.currentTimeMillis() +".mp3";
-            File song = new File(SONGS_DIR + name);
-            FileOutputStream fos = new FileOutputStream(song);
-            if(!songDao.canUploadSong(user,song)){
+        if(user.getId() == id){
+            String name = songDto.getSongName();
+            isSongExists(name);
+            boolean isPublic = songDto.isPublic();
+            Song song = new Song();
+            song.setSongName(name);
+            song.setPublic(isPublic);
+            song.setUserId(user.getId());
+            songRepository.save(song);
+            return songRepository.findBySongName(name);
+        }
+        throw new UnauthorizedUserException();
+    }
+    @PostMapping("/{song_id}/uploadSongs")
+    public Song uploadSong(@RequestPart(value = "file") MultipartFile file, @PathVariable("song_id") long id, HttpSession session) throws Exception {
+        User user = getLoggedUser(session);
+        Song song = songRepository.findById(id);
+        if(song == null){
+            throw new InvalidUserInputException("Song not found");
+
+        }
+        if(user.getId() == song.getUserId()) {
+            if(song.getFilePath()!=null){
+                throw new InvalidUserInputException("Already uploaded");
+            }
+            String filePath = SONGS_DIR + song.getSongName()+ ".mp3";
+            File songFile = new File(filePath);
+            if(!songDao.canUploadSong(user,songFile)){
                 throw new UploadLimitReachedException();
             }
-            fos.write(bytes);
-            songDao.uploadSong(name,user,dto,song);
-            responseDto.setResponse("Songs uploaded successfully");
-            return responseDto;
+            file.transferTo(songFile);
+            songDao.uploadSong(filePath,song.isPublic(),songFile,id);
+            new Thread(()->{
+                try {
+                    notifyFollowers(user,song);
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
+                }
+            }).start();
+            return songRepository.findById(id);
         }
-        else {
-            throw new InvalidUserInputException("You are UNAUTHORIZED to upload a songs at this profile.");
-        }
+        throw new UnauthorizedUserException();
     }
-    @DeleteMapping(value="users/{id}/songs/{song_name}")
-    public ResponseDto deleteSong(@PathVariable("id") long id,@PathVariable String song_name, HttpSession session)
+    @DeleteMapping(value="users/{user_id}/songs/{song_id}")
+    public Song deleteSong(@PathVariable("user_id") long userId,@PathVariable("song_id") long songId, HttpSession session)
             throws Exception {
         User user = getLoggedUser(session);
-        if(user.getId() == id) {
-            File song = new File(SONGS_DIR + song_name);
-            UserValidationDao.hasUserSongs(song);
-            // todo
-            // userDao.geleteSong(song);
-            responseDto.setResponse("Song deleted successfully");
-            return responseDto;
+        if(user.getId() == userId) {
+            Song song = songRepository.findById(songId);
+            if(song==null){
+                throw new InvalidUserInputException("Song not found");
+            }
+            userDao.deleteSong(song);
+            return song;
         }
-        throw new InvalidUserInputException("You are UNAUTHORIZED to delete a song at this profile.");
+        throw new UnauthorizedUserException();
     }
     @PostMapping("users/{id}/follow/{f_id}")
-    public ResponseDto followUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session)
+    public User followUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session)
             throws Exception{
         User user = getLoggedUser(session);
         User following = userRepository.findById(f_id);
@@ -267,13 +282,12 @@ public class UserController extends SessionManagerController{
                 throw new InvalidUserInputException("You are already following this user!");
             }
             userDao.follow(user,following);
-            responseDto.setResponse("You started following " + following.getUsername());
-            return responseDto;
+            return following;
         }
         throw new UnauthorizedUserException();
     }
     @PostMapping("users/{id}/unfollow/{f_id}")
-    public ResponseDto unfollowUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session)
+    public User unfollowUser(@PathVariable("id") long id , @PathVariable("f_id") long f_id, HttpSession session)
             throws Exception {
         User user = getLoggedUser(session);
         User following = userRepository.findById(f_id);
@@ -285,8 +299,7 @@ public class UserController extends SessionManagerController{
                 throw new InvalidUserInputException("You don't follow this user!");
             }
             userDao.unfollow(user,following);
-            responseDto.setResponse("You stop following " + following.getUsername());
-            return responseDto;
+            return following;
         }
         throw new UnauthorizedUserException();
     }
@@ -297,6 +310,14 @@ public class UserController extends SessionManagerController{
         if(user!=null) {
             throw new InvalidUserInputException("User already exists");
         }
+    }
+
+    private Song isSongExists(String songName) throws InvalidUserInputException{
+        Song song = songRepository.findBySongName(songName);
+        if(song!=null) {
+            throw new InvalidUserInputException("Song already exists");
+        }
+        return song;
     }
 
     protected String getRandomString() {
@@ -311,4 +332,11 @@ public class UserController extends SessionManagerController{
 
     }
 
+    private void notifyFollowers(User user, Song song) throws Exception {
+        for (UserSearchDto u : userDao.getAllFollowers(user.getId())) {
+            User follower = userRepository.findByUsername(u.getUsername());
+            MailUtil.sendMail("ADDED NEW SONG", user.getUsername() + " added new song: " +
+                    song.getSongName() + ". Maybe you will like it." , follower.getEmail());
+        }
+    }
 }

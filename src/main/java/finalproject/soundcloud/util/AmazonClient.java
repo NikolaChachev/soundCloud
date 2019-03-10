@@ -51,7 +51,7 @@ public class AmazonClient {
         amazonS3.putObject(new PutObjectRequest(bucketName, fileName, file)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
     }
-    public String uploadFile(MultipartFile multipartFile) {
+    public String uploadFile(File file) {
 
         String fileUrl = "";
         try {

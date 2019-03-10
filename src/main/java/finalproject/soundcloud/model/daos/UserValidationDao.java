@@ -25,6 +25,10 @@ public class UserValidationDao {
         String firstPassword= registerDto.getFirstPassword();
         String secondPassword= registerDto.getSecondPassword();
         String email = registerDto.getEmail();
+        int type = registerDto.getUserType();
+        if(type < 1 || type >4){
+            throw new InvalidUserInputException("Type isn't valid");
+        }
         if(firstPassword.equals(secondPassword)){
             if(validatePassword(firstPassword) && validateEmailAddress(email) && validateUsername(username)!=null ){
                 return true;
@@ -37,6 +41,9 @@ public class UserValidationDao {
                 "{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
         Pattern pattern = Pattern.compile(emailPattern);
         Matcher matcher = pattern.matcher(email);
+        if(email.isEmpty()){
+            return false;
+        }
         if(matcher.matches()){
             return true;
         }
@@ -66,7 +73,7 @@ public class UserValidationDao {
 
     //validate firstName,lastName,city,country
     public static String validateOtherData(String str) throws InvalidUserInputException{
-        if(str.equals("")){
+        if(str.contains(" ") || str.isEmpty()){
             return null;
         }
         if(!str.matches("[a-zA-Z]+") || str.contains(" ")){
@@ -82,13 +89,6 @@ public class UserValidationDao {
             return true;
         }
         throw new InvalidUserInputException("You haven't got a profile picture!");
-    }
-
-    public static boolean hasUserSongs(File file) throws InvalidUserInputException{
-        if(file.exists()){
-            return true;
-        }
-        throw new InvalidUserInputException("This song doesn't exists in your uploads!");
     }
 
 

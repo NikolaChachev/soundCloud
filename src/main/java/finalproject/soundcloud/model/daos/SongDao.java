@@ -4,6 +4,7 @@ import finalproject.soundcloud.model.dtos.SongDto;
 import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
+import finalproject.soundcloud.util.AmazonClient;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -130,11 +131,11 @@ public class SongDao {
         return Duration.ofSeconds(Math.round(durationInSeconds));
     }
 
-    public void uploadSong(String name, User user, SongDto dto,File song) {
-        String sql = "INSERT INTO songs(user_id,song_name,is_public,file_path,length) " +
-                "VALUES(?,?,?,?,?);";
-        jdbcTemplate.update(sql,user.getId(),dto.getSongName(),dto.isPublic(),name,getSongDuration(song).getSeconds());
-        //TODO ADD THE SONG IN AWS
+    public void uploadSong(String name,boolean isPublic,File song , long songId) {
+        String sql = "UPDATE songs SET is_public = ? , file_path = ? , length = ? WHERE song_id = ? ";
+        jdbcTemplate.update(sql,isPublic,name,getSongDuration(song).getSeconds(),songId);
+        AmazonClient amazonClient = new AmazonClient();
+        amazonClient.uploadFile(song);
     }
 
     public boolean deleteSong(long songId)  {

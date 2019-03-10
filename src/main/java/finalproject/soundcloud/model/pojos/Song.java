@@ -1,5 +1,6 @@
 package finalproject.soundcloud.model.pojos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,9 +32,11 @@ public class Song {
     @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean isPublic;
     @Column(name = "file_path")
+    @JsonIgnore
     private String filePath;
     @Column
     private int length;
     @Column
+    @JsonIgnore
     private String picture;
 }
