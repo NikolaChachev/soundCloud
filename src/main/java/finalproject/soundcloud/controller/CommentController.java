@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 public class CommentController extends SessionManagerController {
@@ -49,6 +50,7 @@ public class CommentController extends SessionManagerController {
         commentRepository.save(comment);
         return new ResponseDto("comment added!");
     }
+
     @DeleteMapping(value = "comments/{comId}")
     public ResponseDto removeComment(HttpSession session, @PathVariable("comId") long commentId) throws SoundCloudException{
         User user = getLoggedUser(session);
@@ -59,6 +61,7 @@ public class CommentController extends SessionManagerController {
         }
         return commentDao.removeComment(commentId);
     }
+
     @PutMapping(value = "comments/{id}")
     public ResponseDto rateComment(HttpSession session, @PathVariable("id") long commentId) throws SoundCloudException {
         User user = getLoggedUser(session);
@@ -66,6 +69,23 @@ public class CommentController extends SessionManagerController {
             throw new DoesNotExistException("comment");
         }
         return commentDao.rateComment(user.getId(),commentId);
+    }
+
+    @GetMapping(value =  "songs/{songId}")
+    public List<Comment> getAllParentSongComments(@PathVariable("songId") long songId, HttpSession session) throws DoesNotExistException {
+        if(songRepository.findById(songId) == null){
+            throw new DoesNotExistException("song");
+        }
+        return commentRepository.getAllBySongIdAndParentCommentId(songId,0);
+    }
+
+    @GetMapping(value = "comments/{commentId}")
+    public List<Comment> getAllCommentReplies(@PathVariable("commentId") long commentId,HttpSession session) throws DoesNotExistException {
+        if(commentRepository.findById(commentId) == null){
+            throw new DoesNotExistException("comment");
+        }
+
+        return commentRepository.getAllByParentCommentId(commentId);
     }
 }
 

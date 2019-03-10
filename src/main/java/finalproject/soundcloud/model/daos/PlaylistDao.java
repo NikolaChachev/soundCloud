@@ -3,15 +3,18 @@ package finalproject.soundcloud.model.daos;
 import finalproject.soundcloud.model.dtos.PlaylistDto;
 import finalproject.soundcloud.model.dtos.ResponseDto;
 import finalproject.soundcloud.model.pojos.Playlist;
+import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.PlaylistRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class PlaylistDao {
@@ -63,5 +66,11 @@ public class PlaylistDao {
         String sql = "DELETE FROM playlists_songs WHERE song_id = ?";
         int done = jdbcTemplate.update(sql,songId);
         return done != 0;
+    }
+
+    public List<Song> getAllSongsInPlaylist(long playlistId){
+        String sql = "SELECT * FROM songs AS s JOIN playlists_songs AS p USING(song_id) WHERE playlis_id = ?";
+        List<Song> songs = jdbcTemplate.query(sql,new Object[]{playlistId}, new BeanPropertyRowMapper<>(Song.class));
+        return songs;
     }
 }

@@ -4,6 +4,7 @@ import finalproject.soundcloud.model.daos.PlaylistDao;
 import finalproject.soundcloud.model.dtos.PlaylistDto;
 import finalproject.soundcloud.model.dtos.ResponseDto;
 import finalproject.soundcloud.model.pojos.Playlist;
+import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.PlaylistRepository;
 import finalproject.soundcloud.util.exceptions.DoesNotExistException;
@@ -14,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 @RestController
 public class PlaylistController extends SessionManagerController {
@@ -73,4 +75,13 @@ public class PlaylistController extends SessionManagerController {
         return new ResponseDto("song removed from playlist!");
     }
 
+
+    @GetMapping(value = "playlist/{plId}")
+    public List<Song> getAllSongsInAPlaylist(@PathVariable("plId") long playlistId,HttpSession session) throws DoesNotExistException {
+        if(playlistRepository.getById(playlistId) == null){
+            throw new DoesNotExistException("playlist");
+        }
+
+        return playlistDao.getAllSongsInPlaylist(playlistId);
+    }
 }

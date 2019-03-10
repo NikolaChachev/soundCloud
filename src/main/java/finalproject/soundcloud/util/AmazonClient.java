@@ -56,11 +56,8 @@ public class AmazonClient {
         amazonS3.putObject(new PutObjectRequest(bucketName, fileName, file)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
     }
-<<<<<<< HEAD
-    public String uploadFile(File file) {
-=======
-    public String uploadFile(File file) throws IOException {
->>>>>>> 040440042349a9370ac4d337db09de7d9309e3d4
+
+    public String uploadFile(File file){
 
         String fileUrl = "";
             //File file = convertMultiPartToFile(multipartFile);
