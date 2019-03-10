@@ -9,8 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CommentDto {
     private String text;
-    private long userId;
-    private long songId;
     private long songTime;
     private long parentId;
 }

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sound.sampled.*;
 import java.io.File;
@@ -31,26 +32,22 @@ public class SongDao {
     @Autowired
     PlaylistDao playlistDao;
     public static final String SONGS_DIR = "D:\\ITtalents\\FinalProject\\";
+    @Transactional
     public ResponseDto rateSong(long songId, User user, boolean clickedLike) throws DoesNotExistException {
-        String sql = "SELECT * FROM songs WHERE song_id LIKE ?";
-         List<Song> songs =  jdbcTemplate.query(sql,new Object[]{songId},new BeanPropertyRowMapper<>(Song.class));
-         if(songs.isEmpty()){ // check if the song exists
-             throw new DoesNotExistException("song");
-         }
+        String sql;
          // check if the song has been liked/disliked before
-         sql = "DELETE FROM users_disliked_songs WHERE song_id = ?";
-         int changed = jdbcTemplate.update(sql,songId);
-         if(changed != 0){
-             Song song = songRepository.findById(songId);
+         sql = "DELETE FROM users_disliked_songs WHERE song_id = ? AND user_id = ?";
+         int changed = jdbcTemplate.update(sql,songId,user.getId());
+        Song song = songRepository.findById(songId);
+        if(changed != 0){
              song.setDislikes(song.getDislikes() - 1);
              songRepository.save(song);
              if(!clickedLike)
                 return new ResponseDto("song removed from disliked!");
          }
-         sql = " DELETE FROM users_liked_songs WHERE song_id = ?";
-         changed = jdbcTemplate.update(sql,songId);
+         sql = " DELETE FROM users_liked_songs WHERE song_id = ? AND user_id = ?";
+         changed = jdbcTemplate.update(sql,songId,user.getId());
          if(changed != 0 ){
-             Song song = songRepository.findById(songId);
              song.setLikes(song.getLikes() - 1);
              songRepository.save(song);
              if (clickedLike)
@@ -58,20 +55,25 @@ public class SongDao {
          } // if it hasn`t been like/dislike it now
          if(clickedLike){
              sql = "INSERT INTO users_liked_songs(user_id,song_id) VALUES(?,?)";
+             song.setLikes(song.getLikes() + 1);
          }
          else{
              sql = "INSERT INTO users_disliked_songs(user_id,song_id) VALUES(?,?)";
+             song.setDislikes(song.getDislikes() + 1);
          }
+         songRepository.save(song);
         jdbcTemplate.update(sql, user.getId(),songId);
         ResponseDto responseDto = new ResponseDto();
          responseDto.setResponse("action complete!");
          return responseDto;
     }
+
     public ResponseDto repostSong(User user, long songId){
         String sql = "INSERT INTO users_reposts(user_id,song_id) VALUES(?,?)";
         jdbcTemplate.update(sql,user.getId(),songId);
         return new ResponseDto("song was reposted to your profile");
     }
+
     public ResponseDto unpostSong(User user,long songId){
         String sql = "DELETE FROM users_reposts WHERE user_id = ? AND song_id = ?";
         jdbcTemplate.update(sql,user.getId(),songId);
@@ -83,6 +85,7 @@ public class SongDao {
          List<Song> songs= jdbcTemplate.query(sql,new Object[]{user.getId(),songId}, new BeanPropertyRowMapper<>(Song.class));
          return !songs.isEmpty();
     }
+
     public boolean canUploadSong(User user, File song){
         if(user.getUserType() > 2)
             return true;
@@ -102,8 +105,7 @@ public class SongDao {
         long totalTime = 0;
         ArrayList<Song> songs = songRepository.findAllByUserId(user.getId());
         for (Song s : songs){
-            File song = new File(SONGS_DIR + s.getFilePath());
-            totalTime += getSongDuration(song).getSeconds();
+            totalTime +=(long) s.getLength();
         }
         return totalTime;
     }
@@ -131,15 +133,22 @@ public class SongDao {
         return Duration.ofSeconds(Math.round(durationInSeconds));
     }
 
+<<<<<<< HEAD
     public void uploadSong(String name,boolean isPublic,File song , long songId) {
         String sql = "UPDATE songs SET is_public = ? , file_path = ? , length = ? WHERE song_id = ? ";
         jdbcTemplate.update(sql,isPublic,name,getSongDuration(song).getSeconds(),songId);
+=======
+    public void uploadSong(String filePath, User user, SongDto dto,File song) throws IOException {
+        String sql = "INSERT INTO songs(user_id,song_name,is_public,file_path,length) " +
+                "VALUES(?,?,?,?,?);";
+        jdbcTemplate.update(sql,user.getId(),dto.getSongName(),dto.isPublic(),filePath,getSongDuration(song).getSeconds());
+>>>>>>> 040440042349a9370ac4d337db09de7d9309e3d4
         AmazonClient amazonClient = new AmazonClient();
         amazonClient.uploadFile(song);
     }
 
     public boolean deleteSong(long songId)  {
-        playlistDao.removeSongFromAllPlaylists(songId);
+       // playlistDao.removeSongFromAllPlaylists(songId);
         commentDao.removeAllCommentsFromSong(songId);
         String sql = "DELETE FROM songs WHERE song_id = ?";
         int done = jdbcTemplate.update(sql,songId);

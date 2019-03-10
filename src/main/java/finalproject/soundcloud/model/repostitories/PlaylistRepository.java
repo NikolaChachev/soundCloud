@@ -8,4 +8,5 @@ import java.util.ArrayList;
 public interface PlaylistRepository extends JpaRepository<Playlist,Long> {
     Playlist getById(long id);
     ArrayList<Playlist> getAllByUserId(long id);
+    void removeById(long id);
 }

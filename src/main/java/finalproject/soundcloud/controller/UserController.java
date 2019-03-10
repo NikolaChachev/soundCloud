@@ -159,6 +159,10 @@ public class UserController extends SessionManagerController{
         long userId = user.getId();
         if(userId == userParamId) {
             userRepository.delete(user);
+<<<<<<< HEAD
+=======
+            responseDto.setResponse("Your profile has been deleted.We hope to see you soon!");
+>>>>>>> 040440042349a9370ac4d337db09de7d9309e3d4
             logOut(session);
             return user;
         }
