@@ -1,6 +1,5 @@
 package finalproject.soundcloud.model.daos;
 import finalproject.soundcloud.model.dtos.ResponseDto;
-import finalproject.soundcloud.model.dtos.SongDto;
 import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
@@ -31,6 +30,8 @@ public class SongDao {
     CommentDao commentDao;
     @Autowired
     PlaylistDao playlistDao;
+    @Autowired
+    AmazonClient amazonClient;
     public static final String SONGS_DIR = "D:\\ITtalents\\FinalProject\\";
     @Transactional
     public ResponseDto rateSong(long songId, User user, boolean clickedLike) throws DoesNotExistException {
@@ -133,27 +134,26 @@ public class SongDao {
         return Duration.ofSeconds(Math.round(durationInSeconds));
     }
 
-    public void uploadSong(String name,boolean isPublic,File song , long songId) {
-        String sql = "UPDATE songs SET is_public = ? , file_path = ? , length = ? WHERE song_id = ? ";
-        jdbcTemplate.update(sql,isPublic,name,getSongDuration(song).getSeconds(),songId);
-
-        AmazonClient amazonClient = new AmazonClient();
-        amazonClient.uploadFile(song);
+    public void uploadSong(String filePath,File song , long songId,String songName) {
+        String sql = "UPDATE songs SET  file_path = ? , length = ? WHERE song_id = ? ";
+        jdbcTemplate.update(sql,filePath,getSongDuration(song).getSeconds(),songId);
+        System.out.println(song.getName());
+        amazonClient.uploadFile(song,songName);
 
     }
-
-    public boolean deleteSong(long songId)  {
-       // playlistDao.removeSongFromAllPlaylists(songId);
-        commentDao.removeAllCommentsFromSong(songId);
+    public boolean deleteSong(Song song)  {
+       
         String sql = "DELETE FROM songs WHERE song_id = ?";
-        int done = jdbcTemplate.update(sql,songId);
+        int done = jdbcTemplate.update(sql,song.getId());
+        //amazonClient.deleteFileFromS3Bucket(song.getSongName());
+
         return done != 0;
     }
 
     public boolean deleteAllUserSongs(long userId){
         ArrayList<Song> songs = songRepository.findAllByUserId(userId);
         for (Song s : songs){
-            deleteSong(s.getId());
+            deleteSong(s);
         }
         return true;
     }

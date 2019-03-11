@@ -2,7 +2,6 @@ package finalproject.soundcloud.model.daos;
 
 import finalproject.soundcloud.model.dtos.UserEditDto;
 import finalproject.soundcloud.model.dtos.searchDtos.*;
-import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.util.exceptions.InvalidUserInputException;
 import finalproject.soundcloud.util.exceptions.SoundCloudException;
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
 import java.util.List;
 
 @Component
@@ -119,10 +119,7 @@ public class UserDao {
         return true;
 
     }
-    public void deleteSong(Song song){
-        String sql = "DELETE FROM songs WHERE song_id = ?";
-        jdbcTemplate.update(sql,song.getId());
-    }
+
     public void follow(User user ,User following) {
         String sql = "INSERT INTO followers(user_id,follower_id) VALUES(?,?)";
         jdbcTemplate.update(sql,new Object[]{following.getId(),user.getId()});

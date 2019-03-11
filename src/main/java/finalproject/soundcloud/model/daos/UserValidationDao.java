@@ -26,7 +26,7 @@ public class UserValidationDao {
         String secondPassword= registerDto.getSecondPassword();
         String email = registerDto.getEmail();
         int type = registerDto.getUserType();
-        if(type < 1 || type >4){
+        if(type < 1 || type >3){
             throw new InvalidUserInputException("Type isn't valid");
         }
         if(firstPassword.equals(secondPassword)){

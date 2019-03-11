@@ -9,6 +9,7 @@ import finalproject.soundcloud.model.pojos.Song;
 import finalproject.soundcloud.model.pojos.User;
 import finalproject.soundcloud.model.repostitories.SongRepository;
 import finalproject.soundcloud.model.repostitories.UserRepository;
+import finalproject.soundcloud.util.AmazonClient;
 import finalproject.soundcloud.util.BCryptUtil;
 import finalproject.soundcloud.util.MailUtil;
 import finalproject.soundcloud.util.exceptions.*;
@@ -17,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,8 +39,7 @@ public class UserController extends SessionManagerController{
     @Autowired
     ResponseDto responseDto;
 
-    public static final String IMAGE_DIR = "D:\\ITtalents\\FinalProject\\pictures\\";
-    public static final String SONGS_DIR = "D:\\ITtalents\\FinalProject\\songs\\";
+    public static final String IMAGE_DIR = "D:\\AApictures\\";
     static Logger logger = Logger.getLogger(UserController.class.getName());
 
     @PostMapping(value = "/createAccount")
@@ -208,21 +209,18 @@ public class UserController extends SessionManagerController{
         }
         throw new UnauthorizedUserException();
     }
-    @PostMapping("users/{user_id}/addSong")
-    public Song addSong(@RequestBody SongDto songDto,@PathVariable("user_id") long id, HttpSession session) throws SoundCloudException{
+    @PostMapping("users/addSong")
+    public Song addSong(@RequestBody SongDto songDto, HttpSession session) throws SoundCloudException{
         User user = getLoggedUser(session);
-        if(user.getId() == id){
             String name = songDto.getSongName();
-            isSongExists(name);
+            isSongExists(name,user.getId());
             boolean isPublic = songDto.isPublic();
             Song song = new Song();
             song.setSongName(name);
             song.setPublic(isPublic);
             song.setUserId(user.getId());
             songRepository.save(song);
-            return songRepository.findBySongName(name);
-        }
-        throw new UnauthorizedUserException();
+            return songRepository.findBySongNameAndUserId(name,user.getId());
     }
     @PostMapping("/{song_id}/uploadSongs")
     public Song uploadSong(@RequestPart(value = "file") MultipartFile file, @PathVariable("song_id") long id, HttpSession session) throws Exception {
@@ -236,13 +234,13 @@ public class UserController extends SessionManagerController{
             if(song.getFilePath()!=null){
                 throw new InvalidUserInputException("Already uploaded");
             }
-            String filePath = SONGS_DIR + song.getSongName()+ ".mp3";
-            File songFile = new File(filePath);
+            File songFile = AmazonClient.convertMultiPartToFile(file);
             if(!songDao.canUploadSong(user,songFile)){
+                songRepository.deleteById(id);
                 throw new UploadLimitReachedException();
             }
-            file.transferTo(songFile);
-            songDao.uploadSong(filePath,song.isPublic(),songFile,id);
+            String filePath = user.getId() + "_" + song.getSongName();
+            songDao.uploadSong(filePath,songFile,id,song.getSongName());
             new Thread(()->{
                 try {
                     notifyFollowers(user,song);
@@ -254,7 +252,7 @@ public class UserController extends SessionManagerController{
         }
         throw new UnauthorizedUserException();
     }
-    @DeleteMapping(value="users/{user_id}/songs/{song_id}")
+    @DeleteMapping(value= "users/{user_id}/songs/{song_id}")
     public Song deleteSong(@PathVariable("user_id") long userId,@PathVariable("song_id") long songId, HttpSession session)
             throws Exception {
         User user = getLoggedUser(session);
@@ -263,7 +261,8 @@ public class UserController extends SessionManagerController{
             if(song==null){
                 throw new InvalidUserInputException("Song not found");
             }
-            userDao.deleteSong(song);
+            songDao.deleteSong(song);
+
             return song;
         }
         throw new UnauthorizedUserException();
@@ -311,8 +310,8 @@ public class UserController extends SessionManagerController{
         }
     }
 
-    private Song isSongExists(String songName) throws InvalidUserInputException{
-        Song song = songRepository.findBySongName(songName);
+    private Song isSongExists(String songName,long userId) throws InvalidUserInputException{
+        Song song = songRepository.findBySongNameAndUserId(songName,userId);
         if(song!=null) {
             throw new InvalidUserInputException("Song already exists");
         }
