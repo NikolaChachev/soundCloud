@@ -142,7 +142,7 @@ public class SongDao {
 
     }
     public boolean deleteSong(Song song)  {
-       
+
         String sql = "DELETE FROM songs WHERE song_id = ?";
         int done = jdbcTemplate.update(sql,song.getId());
         //amazonClient.deleteFileFromS3Bucket(song.getSongName());

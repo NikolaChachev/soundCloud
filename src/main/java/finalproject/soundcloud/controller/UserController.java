@@ -34,8 +34,8 @@ public class UserController extends SessionManagerController{
     SongRepository songRepository;
     @Autowired
     UserDao userDao;
-    @Autowired
-    SongDao songDao;
+    //@Autowired
+    //SongDao songDao;
     @Autowired
     ResponseDto responseDto;
 
@@ -112,10 +112,13 @@ public class UserController extends SessionManagerController{
         if(user==null){
             throw new UserNotFoundException();
         }
+        String autoGenerateKey = getRandomString();
+        user.setActivationKey(autoGenerateKey);
+        userRepository.save(user);
         new Thread(()->{
             try {
                 MailUtil.sendMail("Reset passwod","Open this link to reset your password:" +
-                        " http://localhost:8090/password_reset/"+user.getId(),user.getEmail());
+                        " http://localhost:8090/password_reset?activation_key="+autoGenerateKey,user.getEmail());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -123,12 +126,12 @@ public class UserController extends SessionManagerController{
         responseDto.setResponse("Email send successfully.Now you can reset your password");
         return responseDto;
     }
-    @PostMapping(value = "/password_reset/{user_id}")
-    public ResponseDto resetPassword(@PathVariable("user_id") long id, @RequestBody UserRegisterDto resetPass,HttpSession session) throws SoundCloudException{
+    @PostMapping(value = "/password_reset")
+    public ResponseDto resetPassword(@RequestParam(value = "activation_key") String activationKey, @RequestBody UserRegisterDto resetPass,HttpSession session) throws SoundCloudException{
         String fPassword = resetPass.getFirstPassword();
         String sPassword = resetPass.getSecondPassword();
         if(UserValidationDao.validatePassword(fPassword) && fPassword.equals(sPassword)){
-            User user = userRepository.findById(id);
+            User user = userRepository.findByActivationKey(activationKey);
             user.setPassword(BCryptUtil.hashPassword(fPassword));
             userRepository.save(user);
             logUser(session,user);
@@ -197,7 +200,7 @@ public class UserController extends SessionManagerController{
         throw new UnauthorizedUserException();
     }
     @DeleteMapping("/users/{id}/deleteProfileImage")
-    public ResponseDto deleteImage(@PathVariable ("id") long id, HttpSession session) throws Exception {
+   /* public ResponseDto deleteImage(@PathVariable ("id") long id, HttpSession session) throws Exception {
         User user = getLoggedUser(session);
         if(user.getId() == id) {
             File image = new File(IMAGE_DIR + user.getProfilePicture());
@@ -301,7 +304,7 @@ public class UserController extends SessionManagerController{
         }
         throw new UnauthorizedUserException();
     }
-
+*/
 
     private void isUserExists(String username,String email) throws InvalidUserInputException{
         User user = userRepository.findByUsernameOrEmail(username,email);
